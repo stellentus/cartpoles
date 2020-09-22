@@ -28,6 +28,7 @@ func Execute(run uint, conf config.Config, sweepIdx int) error {
 		return errors.New("Cannot run sweep: " + err.Error())
 	}
 	savePath, err := parameterStringify(attrs)
+	//savePath, err := parameterStringify(run, sweepIdx)
 	if err != nil {
 		return errors.New("Failed to format path: " + err.Error())
 	}
@@ -41,6 +42,11 @@ func Execute(run uint, conf config.Config, sweepIdx int) error {
 	if err != nil {
 		return errors.New("Could not create data logger: " + err.Error())
 	}
+
+	//err = logParameters(attrs, fmt.Sprint(conf.Experiment.DataPath, "/", savePath))
+	//if err != nil {
+	//	return errors.New("Could not create parameter logger: " + err.Error())
+	//}
 
 	runtime.GOMAXPROCS(conf.MaxCPUs) // Limit the number of CPUs to the provided value (unchanged if the input is <1)
 
@@ -146,6 +152,51 @@ func parameterStringify(attrs []rlglue.Attributes) (string, error) {
 	sort.Strings(pstrings)
 	return strings.Join(pstrings, "_"), nil
 }
+//func parameterStringify(run uint, sweepIdx int) (string, error) {
+//	save := "/param_" + strconv.Itoa(sweepIdx) + "/"
+//	return save, nil
+//}
+//func logParameters(attrs []rlglue.Attributes, logPath string) error {
+//	fullPath := logPath+"/log_json.txt"
+//	if _, err := os.Stat(fullPath); err == nil {
+//		e := os.Remove(fullPath)
+//		if e != nil {
+//			log.Fatal(e)
+//		}
+//	}
+//	file, err := os.OpenFile(fullPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	log.SetOutput(file)
+//	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
+//
+//	var sweepAttrMap map[string]interface{}
+//	for _, attr := range attrs {
+//		err := json.Unmarshal(attr, &sweepAttrMap)
+//		if err != nil {
+//			return errors.New("Could not parse attributes: " + err.Error())
+//		}
+//	}
+//	pstrings := []string{}
+//	for name, value := range sweepAttrMap {
+//		switch value := value.(type) {
+//		case int, float64, string:
+//			pstrings = append(pstrings, fmt.Sprint(name, "=", value))
+//		case bool:
+//			pstrings = append(pstrings, fmt.Sprint(name, "=", boolToInt(value)))
+//		case []interface{}:
+//			pstrings = append(pstrings, fmt.Sprint(name, "=", arrayToString(value, ",")))
+//		default:
+//			return errors.New("Unexpected type")
+//		}
+//	}
+//	sort.Strings(pstrings)
+//	for _, param := range pstrings {
+//		log.Println(param)
+//	}
+//	return nil
+//}
 
 func boolToInt(x bool) int {
 	if x {
