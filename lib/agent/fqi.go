@@ -242,6 +242,7 @@ func (agent *Fqi) Step(oristate rlglue.State, reward float64) rlglue.Action {
 func (agent *Fqi) End(state rlglue.State, reward float64) {
 	if agent.fqiSettings.OfflineLearning {
 		agent.Update()
+		return
 	}
 	agent.bf.Feed(agent.lastState, agent.lastAction, state, reward, float64(0)) // gamma=0
 	agent.Update()
@@ -471,7 +472,7 @@ func (agent *Fqi) loadDataLog(run int) error {
 	for i := 0; i < len(allTrans); i++ {
 		trans := allTrans[i]
 		gamma := float64(0)
-		if trans[agent.fqiSettings.StateDim*2+2] == 0 {
+		if trans[agent.fqiSettings.StateDim*2+2] != 0 {
 			gamma = agent.Gamma
 		}
 		agent.bf.Feed(
@@ -499,7 +500,7 @@ func (agent *Fqi) loadDataLog(run int) error {
 	for i := 0; i < len(allTrans); i++ {
 		trans := allTrans[i]
 		gamma := float64(0)
-		if trans[agent.fqiSettings.StateDim*2+2] == 0 {
+		if trans[agent.fqiSettings.StateDim*2+2] != 0 {
 			gamma = agent.Gamma
 		}
 		agent.bfValid.Feed(
@@ -606,7 +607,7 @@ func (agent *Fqi) GetLearnProg() string {
 	lastStates, lastActionsFloat, states, rewards, gammas := agent.bf.Content()
 	lastActions := ao.Flatten2DInt(ao.A64ToInt2D(lastActionsFloat))
 
-	lastQ := agent.learningNet.Forward(lastStates)
+	lastQ := agent.learningNet.Predict(lastStates)
 	lastActionValue := ao.RowIndexFloat(lastQ, lastActions)
 	targetQ := agent.targetNet.Predict(states)
 	targetActionValue, _ := ao.RowIndexMax(targetQ)
