@@ -26,7 +26,7 @@
 		},
 		"lock-weight": false,
 		"enable-debug": false,
-		"datalog": "data/hyperparam_v5/acrobot/offline_data/random_restarts/esarsa/step15k/optimalfixed_eps0/param_0/",
+		"datalog": "data/hyperparam_v7/acrobot/offline_data/random_restarts/esarsa/step30k/optimal_eps0/param_0",
 		"weightpath": "weight/hyperparam_v5/acrobot/random_restarts/fqi/step15k_env/optimalfixed_eps0/earlystop/lambda0/",
 		"offline-learn": true,
 		"online-learn": false

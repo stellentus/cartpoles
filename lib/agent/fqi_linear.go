@@ -742,6 +742,10 @@ func (agent *FqiLinear) loadWeights() error {
 		return nil
 	}
 
+	if agent.fqiLinearSettings.WeightPath == "" {
+		return nil
+	}
+
 	// load weights here, save weights after training (called somewhere in experiment.go)
 	err := agent.learningNet.LoadNetwork(
 		fmt.Sprintf("%slearning/", agent.fqiLinearSettings.WeightPath),

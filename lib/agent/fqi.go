@@ -280,11 +280,6 @@ func (agent *Fqi) Update() {
 
 	if agent.updateNum%agent.Sync == 0 {
 		// NN: Synchronization
-		//for i := 0; i < len(agent.targetNet.HiddenWeights); i++ {
-		//	agent.targetNet.HiddenWeights[i] = agent.learningNet.HiddenWeights[i]
-		//}
-		//agent.targetNet.OutputWeights = agent.learningNet.OutputWeights
-		////fmt.Println("sync", agent.updateNum)
 		agent.targetNet = network.Synchronization(agent.learningNet, agent.targetNet)
 	}
 
@@ -561,6 +556,10 @@ func (agent *Fqi) loadDatalogFile(tracePath string) ([][]float64, error) {
 // Load neural net for online evaluation/learning.
 func (agent *Fqi) loadWeights() error {
 	if agent.fqiSettings.OfflineLearning {
+		return nil
+	}
+
+	if agent.fqiSettings.WeightPath == "" {
 		return nil
 	}
 

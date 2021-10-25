@@ -1,0 +1,50 @@
+{
+  "comment": "FQI online (this is equivalent to DQN).",
+  "agent-name": "fqi",
+  "environment-name": "puddleworld",
+  "agent-settings": {
+    "decreasing-epsilon": "None",
+    "gamma": 1.0,
+    "env-name": "puddleworld",
+    "state-len": 2,
+    "buffer-type": "random",
+    "optimizer": "Adam",
+    "fqi-adamBeta1": 0.9,
+    "fqi-adamBeta2": 0.999,
+    "fqi-adamEps": 1e-8,
+    "fqi-l2Lambda": 0.01,
+    "sweep": {
+      "alpha": [1e-4],
+      "fqi-hidden": [
+        [64, 64]
+      ],
+      "fqi-sync":[512],
+      "fqi-batch":[64],
+      "buffer-size":[2500],
+      "epsilon": [0.1]
+    },
+    "enable-debug": false,
+    "seed": 1,
+    "offline-learn": false,
+    "online-learn": true
+  },
+  "environment-settings": {
+    "seed": 1,
+    "name": "puddleworld",
+    "sweep": {
+      "delays":[[0]]
+    }
+  },
+  "experiment-settings": {
+    "randomize_start_state_beforeLock": true,
+    "randomize_start_state_afterLock": true,
+    "steps": 0,
+    "episodes": 10000000,
+    "max-run-length-episodic": 30000,
+    "data-path": "data/hyperparam_v7/puddlerand/online_learning/random_restarts/fqi/fqi-adam/step30k/sweep",
+    "should-log-traces": false,
+    "should-log-episode-lengths": true,
+    "should-log-totals": true,
+    "debug-interval": 0
+  }
+}
