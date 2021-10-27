@@ -154,7 +154,7 @@ func (agent *Fqi) Initialize(run uint, expAttr, envAttr rlglue.Attributes) error
 		return errors.New("Agent failed to load datalog: " + err.Error())
 	}
 
-	agent.nml = normalizer.Normalizer{agent.StateDim, agent.StateRange}
+	agent.nml = normalizer.Normalizer{ArrLen: agent.StateDim, ArrRange: agent.StateRange}
 
 	// NN: Graph Construction
 	// NN: Weight Initialization
@@ -300,7 +300,8 @@ func (agent *Fqi) Update() {
 		for j := 0; j < agent.NumberOfActions; j++ {
 			loss[i][j] = 0
 		}
-		loss[i][lastActions[i]] = rewards[i][0] + gammas[i][0]*targetActionValue[i] - lastActionValue[i]
+		//loss[i][lastActions[i]] = rewards[i][0] + gammas[i][0]*targetActionValue[i] - lastActionValue[i]
+		loss[i][lastActions[i]] = lastActionValue[i] - rewards[i][0] - gammas[i][0]*targetActionValue[i]
 	}
 	// avgLoss := make([][]float64, 1)
 	// avgLoss[0] = make([]float64, agent.NumberOfActions)
@@ -467,7 +468,8 @@ func (agent *Fqi) loadDataLog(run int) error {
 	for i := 0; i < len(allTrans); i++ {
 		trans := allTrans[i]
 		gamma := float64(0)
-		if trans[agent.fqiSettings.StateDim*2+2] != 0 {
+		terminal := trans[agent.fqiSettings.StateDim*2+2]
+		if terminal == 0 {
 			gamma = agent.Gamma
 		}
 		agent.bf.Feed(
@@ -495,7 +497,8 @@ func (agent *Fqi) loadDataLog(run int) error {
 	for i := 0; i < len(allTrans); i++ {
 		trans := allTrans[i]
 		gamma := float64(0)
-		if trans[agent.fqiSettings.StateDim*2+2] != 0 {
+		terminal := trans[agent.fqiSettings.StateDim*2+2]
+		if terminal == 0 {
 			gamma = agent.Gamma
 		}
 		agent.bfValid.Feed(

@@ -59,7 +59,7 @@ func (opt *Sgd) Backward(lossMat, OutputWeights mat.Matrix, LayerOut, HiddenWeig
 		ao.Scale(opt.momentum, opt.OutputUpdate),
 		ao.Scale(opt.alpha,
 			ao.Add(ao.Dot(lossMat, LayerOut[len(HiddenWeights)].T()), ao.Scale(opt.lambda, OutputWeights))))
-	OutputWeights = ao.Add(OutputWeights, opt.OutputUpdate) //.(*mat.Dense)
+	OutputWeights = ao.Subtract(OutputWeights, opt.OutputUpdate) //.(*mat.Dense)
 
 	for i := len(HiddenWeights) - 1; i >= 0; i-- {
 		mulM = ao.Multiply(hiddenE[i], ao.Apply(reluPrime, LayerOut[i+1]))
@@ -69,7 +69,7 @@ func (opt *Sgd) Backward(lossMat, OutputWeights mat.Matrix, LayerOut, HiddenWeig
 			ao.Scale(opt.momentum, opt.HiddenUpdate[i]),
 			ao.Scale(opt.alpha,
 				ao.Add(ao.Dot(ao.Slice(0, mr-1, 0, mc, mulM), LayerOut[i].T()), ao.Scale(opt.lambda, HiddenWeights[i])))) //.(*mat.Dense)
-		HiddenWeights[i] = ao.Add(HiddenWeights[i], opt.HiddenUpdate[i]) //.(*mat.Dense)
+		HiddenWeights[i] = ao.Subtract(HiddenWeights[i], opt.HiddenUpdate[i]) //.(*mat.Dense)
 	}
 	opt.iteration = opt.iteration + 1
 

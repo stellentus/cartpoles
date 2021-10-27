@@ -15,3 +15,5 @@ plot/*txt
 weight
 main*
 main
+.idea/
+.venv/

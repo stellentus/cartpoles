@@ -1,6 +1,6 @@
 {
   "comment": "FQI online (this is equivalent to DQN).",
-  "agent-name": "fqi",
+  "agent-name": "fqilinear",
   "environment-name": "puddleworld",
   "agent-settings": {
     "decreasing-epsilon": "None",
@@ -14,12 +14,14 @@
     "fqi-adamEps": 1e-8,
     "fqi-l2Lambda": 0.01,
     "sweep": {
+      "tilings": [16],
+      "tiles": [2],
       "alpha": [1e-4],
       "fqi-hidden": [
         [64, 64]
       ],
       "fqi-sync":[512],
-      "fqi-batch":[64],
+      "fqi-batch":[128],
       "buffer-size":[2500],
       "epsilon": [0.1]
     },

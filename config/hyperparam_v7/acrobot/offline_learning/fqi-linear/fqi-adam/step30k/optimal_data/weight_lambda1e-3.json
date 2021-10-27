@@ -8,7 +8,7 @@
 		"gamma": 1.0,
 		"state-len": 6,
 		"buffer-type": "random",
-		"optimizer": "Adam",
+		"optimizer": "Sgd",
 		"fqi-adamBeta1": 0.9,
 		"fqi-adamBeta2": 0.999,
 		"fqi-adamEps": 1e-8,
@@ -16,8 +16,8 @@
 		"fqi-hidden": [],
 		"sweep": {
 			"tilings": [16],
-      		"tiles": [2],
-			"alpha": [1e-1, 1e-2, 1e-3, 1e-4, 1e-5],
+			"tiles": [2],
+			"alpha": [1e-3, 3e-3, 1e-4, 3e-4, 1e-5],
 			"fqi-batch":[128],
 			"fqi-sync":[512],
 			"buffer-size":[30000],
@@ -28,7 +28,7 @@
 		"lock-weight": false,
 		"enable-debug": false,
 		"datalog": "data/hyperparam_v7/acrobot/offline_data/random_restarts/esarsa/step30k/optimal_eps0/param_0/",
-		"weightpath": "weight/hyperparam_v7/acrobot/random_restarts/fqi-linear/step30k_env/optimal_eps0/lambda1e-3/",
+		"weightpath": "weight/hyperparam_v7/acrobot/random_restarts/fqi-linear/step30k_env/optimal_eps0/earlystop/lambda1e-1/",
 		"offline-learn": true,
 		"online-learn": false
 	},
@@ -40,8 +40,8 @@
 		}
 	},
 	"experiment-settings": {
-		"steps": 50000,
-		"data-path": "data/hyperparam_v7/acrobot/offline_learning/random_restarts/fqi-linear/fqi-adam/alpha_hidden_epsilon/step30k_env/optimal_eps0/lambda1e-3/weights/",
+		"steps": 30000,
+		"data-path": "data/hyperparam_v7/acrobot/offline_learning/random_restarts/fqi-linear/fqi-adam/alpha_hidden_epsilon/step30k_env/optimal_eps0/earlystop/lambda1e-1/weights/",
 		"should-log-traces": false,
 		"should-log-episode-lengths": false,
 		"should-log-rewards": false,

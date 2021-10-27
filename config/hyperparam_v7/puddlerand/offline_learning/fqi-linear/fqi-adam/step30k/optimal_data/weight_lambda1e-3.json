@@ -16,11 +16,11 @@
 		"fqi-hidden": [],
 		"sweep": {
 			"tilings": [16],
-      		"tiles": [2],
-			"alpha": [1e-1, 1e-2, 1e-3, 1e-4, 1e-5],
-			"fqi-batch":[128],
+			"tiles": [2],
+			"alpha": [1e-3, 3e-3, 1e-4, 3e-4, 1e-5],
+			"fqi-batch":[256],
 			"fqi-sync":[512],
-			"buffer-size":[30000],
+			"buffer-size":[2500],
 			"epsilon": [0],
 			"fqi-numDataset": [30],
 			"seed": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
@@ -28,7 +28,7 @@
 		"lock-weight": false,
 		"enable-debug": false,
 		"datalog": "data/hyperparam_v7/puddlerand/offline_data/random_restarts/esarsa/step30k/optimal_eps0/param_0/",
-		"weightpath": "weight/hyperparam_v7/puddlerand/random_restarts/fqi-linear/step30k_env/optimal_eps0/lambda1e-3/",
+		"weightpath": "weight/hyperparam_v7/puddlerand/random_restarts/fqi-linear/step30k_env/optimal_eps0/earlystop/lambda1e-1/",
 		"offline-learn": true,
 		"online-learn": false
 	},
@@ -40,8 +40,8 @@
 		}
 	},
 	"experiment-settings": {
-		"steps": 50000,
-		"data-path": "data/hyperparam_v7/puddlerand/offline_learning/random_restarts/fqi-linear/fqi-adam/alpha_hidden_epsilon/step30k_env/optimal_eps0/lambda1e-3/weights/",
+		"steps": 30000,
+		"data-path": "data/hyperparam_v7/puddlerand/offline_learning/random_restarts/fqi-linear/fqi-adam/alpha_hidden_epsilon/step30k_env/optimal_eps0/earlystop/lambda1e-1/weights/",
 		"should-log-traces": false,
 		"should-log-episode-lengths": false,
 		"should-log-rewards": false,

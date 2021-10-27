@@ -51,17 +51,20 @@ func (opt *Adam) Init(alpha float64, momentums []float64, input int, hidden []in
 func (opt *Adam) AdamUpdate(lossMat, lastOut, weight, oldM, oldV mat.Matrix) (mat.Matrix, mat.Matrix, mat.Matrix) {
 	var grad, m, v mat.Matrix
 	var mHat, vHat mat.Matrix
-	grad = ao.Scale(-1, ao.Dot(lossMat, lastOut.T()))
-	// grad = ao.Dot(lossMat, lastOut.T())
+	grad = ao.Dot(lossMat, lastOut.T())
 	m = ao.Add(ao.Scale(opt.beta1, oldM), ao.Scale(1-opt.beta1, grad))
 	v = ao.Add(ao.Scale(opt.beta2, oldV), ao.Scale(1-opt.beta2, ao.Pow(grad, 2.0)))
 	ro, co := m.Dims()
+
+	// bias correction
 	mHat = ao.Scale(1.0/(1-math.Pow(opt.beta1, float64(opt.iteration+1))), m)
 	vHat = ao.Scale(1.0/(1-math.Pow(opt.beta2, float64(opt.iteration+1))), v)
+
+	// update weight
 	weight = ao.Subtract(weight,
 		ao.Add(
 			ao.Scale(opt.alpha, ao.Division(mHat, ao.Add(ao.Pow(vHat, 0.5), ao.Scale(opt.eps, ao.Ones(ro, co))))),
-			ao.Scale(opt.lambda, weight)))
+			ao.Scale(opt.alpha * opt.lambda, weight)))
 	return weight, m, v
 }
 
@@ -80,6 +83,7 @@ func (opt *Adam) Backward(lossMat, OutputWeights mat.Matrix, LayerOut, HiddenWei
 
 	for i := len(HiddenWeights) - 2; i >= 0; i-- {
 		hiddenE[i] = ao.Dot(HiddenWeights[i+1].T(), noBias)
+		hiddenE[i] = ao.Multiply(hiddenE[i], ao.Apply(reluPrime, LayerOut[i+1]))
 		hr, hc = hiddenE[i].Dims()
 		noBias = ao.Slice(0, hr-1, 0, hc, hiddenE[i])
 	}
@@ -91,10 +95,6 @@ func (opt *Adam) Backward(lossMat, OutputWeights mat.Matrix, LayerOut, HiddenWei
 	//ADAM
 	OutputWeights, opt.OutputMomentum, opt.OutputV = opt.AdamUpdate(lossMat, LayerOut[len(HiddenWeights)],
 		OutputWeights, opt.OutputMomentum, opt.OutputV)
-
-	//// SGD
-	//net.OutputUpdate = add(scale(net.SgdMomentum, net.OutputUpdate), scale(net.learningRate, dot(lossMat, net.LayerOut[len(net.HiddenWeights)].T())))
-	//net.OutputWeights = add(net.OutputWeights, net.OutputUpdate) //.(*mat.Dense)
 
 	for i := len(HiddenWeights) - 1; i >= 0; i-- {
 		mulM = ao.Multiply(hiddenE[i], ao.Apply(reluPrime, LayerOut[i+1]))

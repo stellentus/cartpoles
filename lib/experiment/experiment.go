@@ -224,7 +224,11 @@ func (exp *Experiment) runSingleEpisode() []float64 {
 			if exp.Settings.EarlyStop {
 				//floatMstde, _ := type_opr.GetFloat(mstde)
 				validate := strings.Split(mstde, ",")[1]
-				floatValidate, _ := strconv.ParseFloat(validate, 64)
+				floatValidate, err := strconv.ParseFloat(validate, 64)
+				if err != nil {
+					fmt.Println("cannot get validation score")
+					break
+				}
 				exp.MstdeLog[(exp.numStepsTaken-1) % exp.convergeCheck] = floatValidate
 				fmt.Println(exp.MstdeLog, floatValidate, mstde, exp.numStepsTaken % exp.convergeCheck)
 				if ((exp.numStepsTaken-1) > exp.convergeCheck) &&

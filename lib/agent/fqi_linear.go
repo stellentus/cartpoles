@@ -36,15 +36,16 @@ type fqiLinearSettings struct {
 	MinEpsilon          float64 `json:"min-epsilon"`
 	DecreasingEpsilon   string  `json:"decreasing-epsilon"`
 
-	Hidden    []int   `json:"fqi-hidden"`
-	Alpha     float64 `json:"alpha"`
-	Sync      int     `json:"fqi-sync"`
-	Decay     float64 `json:"fqi-decay"`
-	Momentum  float64 `json:"fqi-momentum"`
-	AdamBeta1 float64 `json:"fqi-adamBeta1"`
-	AdamBeta2 float64 `json:"fqi-adamBeta2"`
-	AdamEps   float64 `json:"fqi-adamEps"`
-	L2Lambda  float64 `json:"fqi-l2Lambda"`
+	NumDataset int64   `json:"fqi-numDataset"`
+	Hidden     []int   `json:"fqi-hidden"`
+	Alpha      float64 `json:"alpha"`
+	Sync       int     `json:"fqi-sync"`
+	Decay      float64 `json:"fqi-decay"`
+	Momentum   float64 `json:"fqi-momentum"`
+	AdamBeta1  float64 `json:"fqi-adamBeta1"`
+	AdamBeta2  float64 `json:"fqi-adamBeta2"`
+	AdamEps    float64 `json:"fqi-adamEps"`
+	L2Lambda   float64 `json:"fqi-l2Lambda"`
 
 	Bsize int    `json:"buffer-size"`
 	Btype string `json:"buffer-type"`
@@ -65,13 +66,12 @@ type fqiLinearSettings struct {
 
 type FqiLinear struct {
 	logger.Debug
-	rng                    *rand.Rand
-	tiler                  util.MultiTiler
-	tilerNumIndices        int
-	lastAction             int
-	lastState              rlglue.State
-	lastTileCodedState     rlglue.State
-	oldStateActiveFeatures []int
+	rng                *rand.Rand
+	tiler              util.MultiTiler
+	tilerNumIndices    int
+	lastAction         int
+	lastState          rlglue.State
+	lastTileCodedState rlglue.State
 
 	fqiLinearSettings
 
@@ -81,7 +81,8 @@ type FqiLinear struct {
 
 	stateRange [][]float64
 	// nml normalizer.Normalizer
-	bf *buffer.Buffer
+	bf      *buffer.Buffer // Training dataset
+	bfValid *buffer.Buffer // Validation dataset
 
 	learningNet network.Network
 	targetNet   network.Network
@@ -154,6 +155,10 @@ func (agent *FqiLinear) Initialize(run uint, expAttr, envAttr rlglue.Attributes)
 	}
 	agent.bf = buffer.NewBuffer()
 	agent.bf.Initialize(agent.Btype, agent.Bsize, agent.tilerNumIndices, agent.Seed+int64(run))
+	if agent.fqiLinearSettings.OfflineLearning {
+		agent.bfValid = buffer.NewBuffer()
+		agent.bfValid.Initialize(agent.Btype, agent.Bsize, agent.tilerNumIndices, (agent.Seed+1)%agent.NumDataset+int64(run))
+	}
 
 	// Load datalog for offline trainning.
 	// To get the trace path, Seed corresponds to run of offline data.
@@ -498,7 +503,7 @@ func (agent *FqiLinear) Update() {
 		for j := 0; j < agent.NumberOfActions; j++ {
 			loss[i][j] = 0
 		}
-		loss[i][lastActions[i]] = rewards[i][0] + gammas[i][0]*targetActionValue[i] - lastActionValue[i]
+		loss[i][lastActions[i]] = lastActionValue[i] - rewards[i][0] - gammas[i][0]*targetActionValue[i]
 	}
 	// avgLoss := make([][]float64, 1)
 	// avgLoss[0] = make([]float64, agent.NumberOfActions)
@@ -665,29 +670,87 @@ func (agent *FqiLinear) GetLock() bool {
 	return agent.lock
 }
 
-// Load datalog, copy dataset to replay buffer. Save tile coded state features to save computation.
+// Load datalog, copy dataset to replay buffer.
 func (agent *FqiLinear) loadDataLog(run int) error {
 	if !agent.fqiLinearSettings.OfflineLearning {
 		return nil
 	}
+	var allTrans [][]float64
+	var err error
 
+	// Load training set
 	folder := agent.fqiLinearSettings.DataLog
 	traceLog := folder + "/traces-" + strconv.Itoa(int(run)) + ".csv"
-
-	// Get offline data
-	csvFile, err := os.Open(traceLog)
+	fmt.Printf("Training set: %v\n", traceLog)
+	allTrans, err = agent.loadDatalogFile(traceLog)
 	if err != nil {
-		return errors.New("Cannot find trace log file: " + err.Error())
+		return err
+	}
+
+	for i := 0; i < len(allTrans); i++ {
+		trans := allTrans[i]
+		gamma := float64(0)
+		terminal := trans[agent.fqiLinearSettings.StateDim*2+2]
+		if terminal == 0 {
+			gamma = agent.Gamma
+		}
+		agent.bf.Feed(
+			trans[:agent.fqiLinearSettings.StateDim],                                       // state
+			trans[agent.fqiLinearSettings.StateDim],                                        // action
+			trans[agent.fqiLinearSettings.StateDim+1:agent.fqiLinearSettings.StateDim*2+1], // next state
+			trans[agent.fqiLinearSettings.StateDim*2+1],                                    // reward
+			gamma, // gamma
+		)
+	}
+
+	if !agent.fqiLinearSettings.OfflineLearning {
+		return nil
+	}
+
+	// Load validation set
+	// var allTransValid [][]float64
+	traceLog = folder + "/traces-" + strconv.Itoa((run+1)%int(agent.NumDataset)) + ".csv"
+	fmt.Printf("Validation set: %v\n", traceLog)
+	allTrans, err = agent.loadDatalogFile(traceLog)
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < len(allTrans); i++ {
+		trans := allTrans[i]
+		gamma := float64(0)
+		terminal := trans[agent.fqiLinearSettings.StateDim*2+2]
+		if terminal == 0 {
+			gamma = agent.Gamma
+		}
+		agent.bfValid.Feed(
+			trans[:agent.fqiLinearSettings.StateDim],                                       // state
+			trans[agent.fqiLinearSettings.StateDim],                                        // action
+			trans[agent.fqiLinearSettings.StateDim+1:agent.fqiLinearSettings.StateDim*2+1], // next state
+			trans[agent.fqiLinearSettings.StateDim*2+1],                                    // reward
+			gamma, // gamma
+		)
+	}
+
+	return nil
+}
+
+func (agent *FqiLinear) loadDatalogFile(tracePath string) ([][]float64, error) {
+	// Get offline data
+	var allTransTemp [][]float64
+	csvFile, err := os.Open(tracePath)
+	if err != nil {
+		return allTransTemp, errors.New("Cannot find trace log file: " + err.Error())
 	}
 	allTransStr, err := csv.NewReader(csvFile).ReadAll()
 	csvFile.Close()
 	if err != nil {
-		return errors.New("Cannot read trace log file: " + err.Error())
+		return allTransTemp, errors.New("Cannot read trace log file: " + err.Error())
 	}
 	if len(allTransStr) <= agent.fqiLinearSettings.BatchSize {
-		return errors.New("Not enough data to sample from: " + err.Error())
+		return allTransTemp, errors.New("Not enough data to sample from: " + err.Error())
 	}
-	allTransTemp := make([][]float64, len(allTransStr)-1)
+	allTransTemp = make([][]float64, len(allTransStr)-1)
 	for i := 1; i < len(allTransStr); i++ { // remove first str (title of column)
 		trans := allTransStr[i]
 		row := make([]float64, agent.fqiLinearSettings.StateDim*2+3)
@@ -712,28 +775,7 @@ func (agent *FqiLinear) loadDataLog(run int) error {
 		allTransTemp[i-1] = row
 	}
 
-	var allTrans [][]float64 = allTransTemp
-
-	for i := 0; i < len(allTrans); i++ {
-		trans := allTrans[i]
-		gamma := float64(0)
-		if trans[agent.fqiLinearSettings.StateDim*2+2] == 0 {
-			gamma = agent.Gamma
-		}
-		tileCodedState := agent.tileEncodeState(
-			trans[:agent.fqiLinearSettings.StateDim])
-		tileCodedNextState := agent.tileEncodeState(
-			trans[agent.fqiLinearSettings.StateDim+1 : agent.fqiLinearSettings.StateDim*2+1])
-		agent.bf.Feed(
-			tileCodedState,                              // state
-			trans[agent.fqiLinearSettings.StateDim],     // action
-			tileCodedNextState,                          // next state
-			trans[agent.fqiLinearSettings.StateDim*2+1], // reward
-			gamma, // gamma
-		)
-	}
-
-	return nil
+	return allTransTemp, nil
 }
 
 // Load neural net for online evaluation/learning.
@@ -783,16 +825,15 @@ func (agent *FqiLinear) SaveWeights(basePath string) error {
 	return nil
 }
 
-// Mean squared TD error of a full pass over the whole dataset.
+// GetLearnProg computes mean squared TD error of a full pass over the whole dataset.
 func (agent *FqiLinear) GetLearnProg() string {
+	// MSTDE of training set
 	lastStates, lastActionsFloat, states, rewards, gammas := agent.bf.Content()
 	lastActions := ao.Flatten2DInt(ao.A64ToInt2D(lastActionsFloat))
 
-	//lastQ := agent.learningNet.Forward(lastStates)
 	lastQ := agent.learningNet.Predict(lastStates)
 	lastActionValue := ao.RowIndexFloat(lastQ, lastActions)
-	//targetQ := agent.targetNet.Predict(states)
-	targetQ := agent.learningNet.Predict(states)
+	targetQ := agent.targetNet.Predict(states)
 	targetActionValue, _ := ao.RowIndexMax(targetQ)
 
 	loss := 0.0
@@ -800,7 +841,26 @@ func (agent *FqiLinear) GetLearnProg() string {
 		diff := rewards[i][0] + gammas[i][0]*targetActionValue[i] - lastActionValue[i]
 		loss += math.Pow(diff, 2)
 	}
-	return strconv.FormatFloat(loss/float64(len(lastQ)), 'f', -1, 64)
+
+	// MSTDE of validation set
+	lastStates, lastActionsFloat, states, rewards, gammas = agent.bfValid.Content()
+	lastActions = ao.Flatten2DInt(ao.A64ToInt2D(lastActionsFloat))
+
+	lastQ = agent.learningNet.Predict(lastStates)
+	lastActionValue = ao.RowIndexFloat(lastQ, lastActions)
+	//targetQ = agent.targetNet.Predict(states)
+	targetQ = agent.learningNet.Predict(states)
+	targetActionValue, _ = ao.RowIndexMax(targetQ)
+
+	validLoss := 0.0
+	for i := 0; i < len(lastQ); i++ {
+		diff := rewards[i][0] + gammas[i][0]*targetActionValue[i] - lastActionValue[i]
+		validLoss += math.Pow(diff, 2)
+	}
+
+	return fmt.Sprintf("%v,%v",
+		strconv.FormatFloat(loss/float64(len(lastQ)), 'f', -1, 64),
+		strconv.FormatFloat(validLoss/float64(len(lastQ)), 'f', -1, 64))
 }
 
 func (agent *FqiLinear) PassInfo(info string, value float64) interface{} {
