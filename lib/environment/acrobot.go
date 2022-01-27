@@ -32,6 +32,7 @@ type AcrobotSettings struct {
 	PercentNoise []float64 `json:"percent_noise"`
 	LinkLength1	 float64   `json:"link_len_1"`
 	LinkMass1	 float64   `json:"link_mass_1"`
+	FlipAct	 	 bool	   `json:"flip_act"`
 	//RandomizeStartState bool      `json:"randomize_start_state"`
 }
 
@@ -87,7 +88,11 @@ func (env *Acrobot) InitializeWithSettings(set AcrobotSettings) error {
 	env.rng = rand.New(rand.NewSource(env.Seed)) // Create a new rand source for reproducibility
 	env.rngStartState = rand.New(rand.NewSource(env.Seed))
 	//env.availTorqueActions = []float64{+1.0, 0.0, -1.0}
-	env.availTorqueActions = []float64{+1.0, -1.0}
+	if env.AcrobotSettings.FlipAct {
+		env.availTorqueActions = []float64{-1.0, +1.0}
+	} else {
+		env.availTorqueActions = []float64{+1.0, -1.0}
+	}
 
 	if len(env.PercentNoise) == 1 {
 		// Copy it for all dimensions
