@@ -43,21 +43,6 @@ def top_param():
                      outer=30, ylim=[[-34, -27]], ylabel="Return per episode", right_ax=[],
                      label_ncol=3, plot="bar", true_perf_label=False)
 
-    # PLOT Agents
-    calibration = {
-        "Esarsa": pr_knnlaplace_optim_5k,
-        # "DQN": pr_dqn_knnlaplace_optim,
-        "AC": pr_actorcritic_knnlaplace_optim,
-    }
-    true = {
-        "Esarsa": pr_true,
-        # "DQN": pr_dqn,
-        "AC": pr_actorcritic,
-    }
-    # plot_compare_agents(true, calibration, None, [], "totals", "../img/finalPlots/puddlerand/plot_agents",
-    #                     outer=30, ylim=[[-50, -25]], ylabel="Return per episode", right_ax=[],
-    #                     label_ncol=3)
-
     # PLOT CEM
     calibration = {
         "Calibration-KNN": pr_knnlaplace_optim_5k
@@ -67,8 +52,7 @@ def top_param():
     #fqi = {"FQI": ac_fqi_tc}
     plot_compare_top(true, calibration, None, random, "totals", "../img/finalPlots/puddlerand/plot1/plot1_models_CEM_KNNlaplace", cem=cem,
                       outer=30, ylim=[[-80, -20],[]], ylabel="Return per episode", right_ax=[], plot ='box')
-    '''
-    
+
     calibration = {
         "Calibration (grid search)": pr_k3_laplace_suboptim_500data
     }
@@ -79,6 +63,61 @@ def top_param():
     #fqi = {"FQI": ac_fqi_tc}
     plot_compare_top(true, calibration, None, random, "totals", "../img/finalPlots/puddlerand/cem/cem_k3_laplace_100iters_ylim", cem=cem,
                       outer=30, ylim=[[-40, -25]], ylabel="Return per episode", right_ax=[], plot ='box')
+    '''
+
+    # PLOT RAW
+    calibration = {
+        "KNN-laplace": pr_knnlaplace_optim_5k,
+        "KNN-raw": pr_knnraw_optim_5k,
+        "NN-laplace": pr_networkscaledlaplace_optim_5k,
+        "NN-raw": pr_networkscaledraw_optim_5k,
+    }
+    random = pr_rnd
+    true = {"true": pr_true}
+    fqi = {"FQI": pr_fqi_tc}
+    #cem = {"cem": pr_cem}
+    # plot_compare_top(true, calibration, None, [], "totals", "../img/finalPlots/puddlerand/appendix/raw",
+    #                  outer=30, ylim=[[-100, -20], []], ylabel="Return per episode", right_ax=["FQI", "Random", "NN-raw"],
+    #                  label_ncol=6)
+
+    # PLOT Agents
+    # calibration = {
+    #     "Esarsa": pr_knnlaplace_optim_5k,
+    #     # "DQN": pr_dqn_knnlaplace_optim,
+    #     "AC": pr_actorcritic_knnlaplace_optim,
+    # }
+    # true = {
+    #     "Esarsa": pr_true,
+    #     # "DQN": pr_dqn,
+    #     "AC": pr_actorcritic,
+    # }
+    # plot_compare_agents(true, calibration, None, [], "totals", "../img/finalPlots/puddlerand/plot_agents",
+    #                     outer=30, ylim=[[-50, -25]], ylabel="Return per episode", right_ax=[],
+    #                     label_ncol=3)
+    calibration = {
+        "Calibration-KNN": pr_actorcritic_knnlaplace_optim,
+    }
+    random = random_generator(36)
+    true = {"true": pr_actorcritic}
+    fqi = {"FQI": pr_fqi_tc}
+    #cem = {"cem": pr_cem}
+    # plot_compare_top(true, calibration, fqi, random, "totals", "../img/finalPlots/puddlerand/appendix/ac",
+    #                  outer=30, ylim=[[-100, -20], []], ylabel="Return per episode", right_ax=["FQI", "Random"],
+    #                  label_ncol=6)
+
+    # PLOT FQI NN
+    calibration = {
+        "Calibration": pr_knnlaplace_optim_5k,
+    }
+    show_perform = {
+        "FQI-TC": pr_fqi_tc,
+        "FQI-NN": pr_fqi_nn,
+    }
+    true = {"true": pr_true}
+    plot_compare_top(true, calibration, None, [], "totals", "../img/finalPlots/puddlerand/appendix/fqi",
+                     load_perf=show_perform,
+                     outer=30, ylim=[[-100, -20]], ylabel="Return per episode", right_ax=["FQI-NN", "FQI-TC"],
+                     label_ncol=2, true_perf_label=False)
 
 
 def sweep_model():

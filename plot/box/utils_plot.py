@@ -129,7 +129,16 @@ c_dict = {
     "Esarsa transfer (calibration)": c_default_Adam[6],
 
     "Calibration (CEM)": c_default_Adam[5],
-    "Calibration (Grid search)": c_default_Adam[0]
+    "Calibration (Grid search)": c_default_Adam[0],
+
+    "w/o policy": c_default_Adam[0],
+    "Init policy (learning 15k)": c_default_Adam[5],
+    "Init policy (learning 50k)": c_default_Adam[5],
+    "Shift Esarsa transfer (true)": c_default_Adam[2],
+    "Shift Esarsa transfer (calibration)": c_default_Adam[3],
+
+    "Sanity Check lock weight": c_default_Adam[1],
+    "Sanity Check lr=0": c_default[0],
 }
 m_default = [".", "^", "+", "*", "s", "D", "h", "H", "."]
 m_dict = {
@@ -143,12 +152,24 @@ def cmap(key, idx):
         return c_dict[key]
     else:
         # return c_default(idx)
-        return c_default[int(len(c_default)*idx)]#[int(idx%len(c_default))]
+        return c_default[int(idx%len(c_default))] #[int(len(c_default)*idx)]#
 def mmap(key, idx):
     if key in m_dict.keys():
         return m_dict[key]
     else:
         return m_default[idx%len(m_default)]
+
+def exp_smooth(ary, alpha):
+    new = np.zeros(len(ary))
+    for j in range(len(ary)):
+        new[j] = ary[j]
+        if not np.isnan(ary[j]):
+            break
+    for i in range(j+1, len(ary)):
+        new[i] = alpha * ary[i] + (1-alpha) * new[i-1]
+        # print(alpha, new[i-1:i+1], ary[i])
+    return new
+
 
 def plot_each_run(te, cms, source, title, ylim=None, outer=None, sparse_reward=None, max_len=np.inf):
     te_data = loading_average(te, source, outer=outer, sparse_reward=sparse_reward, max_len=max_len)
@@ -260,14 +281,14 @@ def plot_generation(te, cms, ranges, source, title, ylim=None, yscale="linear", 
     plot_boxs(filtered, te_thrd, ranges, title, ylim=ylim, yscale=yscale, res_scale=res_scale, label_ncol=label_ncol)
     #plot_violins(filtered, te_thrd, ranges, title, ylim=ylim, yscale=yscale, res_scale=res_scale)
 
-def plot_compare_top(te, cms, fqi, rand_lst, source, title, cem=None, load_perf=None,
+def plot_compare_top(te, cms, fqi, rand_lst, source, title,
+                     cem=None, load_perf=None,
                      ylim=[], yscale="linear", res_scale=1, outer=None, sparse_reward=None, max_len=np.inf, discount=1,
                      ylabel="", right_ax=[], label_ncol=10, plot="box", true_perf_label=True):
     ranges = [0]
     # true env data dictionary
     te_data = loading_average(te, source, outer=outer, sparse_reward=sparse_reward, max_len=max_len)
     te_data = average_run(te_data["true"])
-    # print(te_data)
 
     # fqi data
     # # all performance
@@ -334,20 +355,29 @@ def plot_compare_top(te, cms, fqi, rand_lst, source, title, cem=None, load_perf=
             filtered[model].append(data)
 
     if load_perf is not None:
-        lp_avg = loading_average(load_perf, source, outer=outer, sparse_reward=sparse_reward, max_len=max_len)
-        for model in lp_avg.keys():
-            filtered[model] = []
-            temp_data = {}
-            for rk in lp_avg[model].keys():
-                for pk in lp_avg[model][rk].keys():
-                    if pk not in temp_data:
-                        temp_data[pk] = [lp_avg[model][rk][pk]]
-                    else:
-                        temp_data[pk].append(lp_avg[model][rk][pk])
-            for pk in temp_data.keys():
-                filtered[model].append(np.mean(temp_data[pk]))
+        perf, load_run_num = load_perf
+        perf_data = loading_average(perf, source, outer=outer, sparse_reward=sparse_reward, max_len=max_len)
+        lrn_data = loading_average(load_run_num, source, outer=outer, sparse_reward=sparse_reward, max_len=max_len)
+        lrn_rank = ranking_allruns(lrn_data)
+        for model in perf_data.keys():
+            ranks = lrn_rank[model]
+            assert ranges == [0]
+            print("load_perf: load from", perf[model])
 
-    # if cem is not None and fqi is not None and rand_lst != []:
+            # res = top_perf_single_run(ranks, perf_data[model]) # load online evaluation performance
+            # filtered[model] = []
+            # for pk in res:
+            #     # filtered[model].append(np.array(res[pk]).mean())
+            #     filtered[model] += res[pk]
+            # # filtered[model] = np.array(filtered[model]).mean()
+
+            te = average_run(perf_data[model])
+            target = percentile_worst(ranks, 0, te) # load online evaluation performance
+            res = [item[2] for item in target]
+            filtered[model] = res
+
+
+# if cem is not None and fqi is not None and rand_lst != []:
     #     bsl = {"Random selection": [rand_data], "FQI": [fqi_data], "calibration (cem)": [cem_data]}
     # elif fqi is not None and rand_lst != []:
     #     bsl = {"Random selection": [rand_data], "FQI": [fqi_data]}
@@ -369,6 +399,7 @@ def plot_compare_top(te, cms, fqi, rand_lst, source, title, cem=None, load_perf=
 
     if plot == "box":
         plot_boxs(filtered, te_thrd, ranges, title, ylim=ylim, yscale=yscale, res_scale=res_scale, ylabel=ylabel, right_ax=right_ax, label_ncol=label_ncol)
+        # plot_violins(filtered, te_thrd, ranges, title, ylim=ylim, yscale=yscale, res_scale=res_scale)
     elif plot == "bar":
         plot_bars(filtered, te_thrd, ranges, title, ylim=ylim, yscale=yscale, res_scale=res_scale, ylabel=ylabel, right_ax=right_ax, label_ncol=label_ncol,
                   true_perf_label=true_perf_label)
@@ -556,13 +587,12 @@ def plot_boxs(filtered, thrd, xlabel, title, ylim=[], yscale='linear', res_scale
     rhs_axs.set_xlim([min_x-space, max_x+space])
 
     if ylim != [] and yscale != "log":
-        ax.set_ylim(ylim[0])
-        # ax.set_ybound(lower=ylim[0][0], upper=ylim[0][1])
+        # ax.set_ylim(ylim[0])
+        ax.set_ylim(ylim)
     if not vertline:
         rhs_axs.set_visible(False)
     elif vertline and len(thrd)>0:
         align_yaxis(ax, thrd[0] * res_scale, rhs_axs, thrd[0] * res_scale)
-
     ax.set_yscale(yscale)
     rhs_axs.set_yscale(yscale)
     ymin, ymax = ax.get_ylim()
@@ -612,13 +642,12 @@ def plot_boxs(filtered, thrd, xlabel, title, ylim=[], yscale='linear', res_scale
         step = (ymax - ymin) / 3
         for i in range(len(thrd)):
             ytcs.append(thrd[i] * res_scale)
-        for j in np.arange(ymin+step, ymax+step, step):
+        for j in np.arange(ymin+step, ymax, step):
             if len(thrd) == 0 or np.abs(j - thrd[0] * res_scale) > (ymax-ymin)*0.05:
                 ytcs.append(j)
         rhs_axs.set_yticks(ytcs)
         # rhs_axs.set_yticklabels(ytcs)
-
-    if yscale == "log":
+    else:
         ylabel += " (log)"
     ax.set_ylabel(ylabel, fontsize=20)
 
@@ -630,7 +659,7 @@ def plot_boxs(filtered, thrd, xlabel, title, ylim=[], yscale='linear', res_scale
     plt.tight_layout()
     # plt.show()
     print(title)
-    plt.savefig("{}.pdf".format(title))
+    plt.savefig("{}.png".format(title))
     plt.close()
     plt.clf()
 
@@ -708,7 +737,7 @@ def plot_violins(filtered, thrd, xlabel, title, ylim=None, yscale="linear", res_
     #plt.ylabel('Steps to\nsuccess (AUC)', rotation=0, labelpad=55)
     ax.set_xlim([-(width+0.01)*len(all_models)-width, xlocations[-1]+width*len(all_models)])
 
-    if ylim is not None and yscale != "log":
+    if ylim != [] and yscale != "log":
         ax.set_ylim(ylim)
 
     plt.yscale(yscale)
@@ -973,3 +1002,94 @@ def plot_param_sweep(paths, source, title, ylim=None, yscale="linear", outer=Non
     ranked = sorted(avg_data.items(), key=lambda item: item[1])
     print("ranked")
     print(ranked)
+
+def plot_learning_curve(path, param, mode="episodes", num_runs=30, ylim=[], single_run=False, smooth=1):
+    res = {}
+    res_all_runs = {}
+    fig, axs = plt.subplots(len(param))
+    for pidx, p in enumerate(param):
+        single_p = []
+        for run in range(num_runs):
+            file = os.path.join(path, "param_{}".format(p), "{}-{}.csv".format(mode, run))
+            col = "episode lengths" if mode == "episodes" else "rewards"
+            log = pd.read_csv(file)[col]
+            steplog = []
+            for i, stepep in enumerate(log[:-1]):
+                steplog += [stepep] * stepep
+            single_p.append(steplog)
+        res_all_runs[p] = single_p
+
+        avg_p = []
+        stop = False
+        ep = 0
+        while not stop:
+            total = []
+            for run in range(len(single_p)):
+                if len(single_p[run]) > ep:
+                    total.append(single_p[run][ep])
+            if len(total) == 0:
+            # if len(total) < 5:
+                stop = True
+                # print("param {}, ep {}, {}".format(p, ep, avg_p))
+            else:
+                avg_p.append(np.array(total).mean())
+                ep += 1
+
+        avg_p = exp_smooth(avg_p, smooth)
+        res[p] = avg_p
+
+    if single_run:
+        fig, axs = plt.subplots(1, len(param))
+        if len(param) == 1:
+            axs = [axs]
+        for pidx, p in enumerate(param):
+            single_p = res_all_runs[p]
+            for run in range(num_runs):
+                axs[pidx].plot(single_p[run], label=run)
+                print("param {}, run{}, avg_step {}, num_ep {}".format(p, run, np.mean(np.array(single_p[run])), len(single_p[run])))
+        plt.legend()
+        plt.show()
+
+    plt.figure()
+    for p in param:
+        plt.plot(res[p], label=p)
+        print("param {}, auc {}, avg {}".format(p, np.array(res[p]).sum(), np.array(res[p]).mean()))
+    plt.legend(ncol=4)
+    if ylim != []:
+        plt.ylim(ylim)
+    plt.show()
+
+def plot_perf_distribution(paths, param, source="totals", num_runs=30, outer=None, sparse_reward=None, max_len=np.inf, flip=False, save_path="temp"):
+    data = loading_average(paths, source, outer=outer, sparse_reward=sparse_reward, max_len=max_len)
+    target_all_path = {}
+    for path in paths:
+        target = {}
+        for p in param[path]:
+            target[p] = []
+            for run in range(num_runs):
+                target[p].append(data[path]["run{}".format(run)]["param_{}".format(p)])
+        target_all_path[path] = target
+
+    plt.figure()
+    i = 0
+    p_lst = list(paths.keys())
+    x_labels = []
+    for path in paths:
+        for p in param[path]:
+            y = np.array(target_all_path[path][p])
+            if flip:
+                y = -1 * y
+            avg = y.mean()
+            mid = np.median(y)
+            x = i + np.random.random(size=len(y)) / 3
+            plt.scatter(x, y, s=5, color=cmap(None, p_lst.index(path)))
+            plt.plot([i, i+0.3], [avg, avg], color="black")
+            # plt.plot([i, i+0.3], [mid, mid], "--", color="black")
+            plt.text(i, avg, "{:.2f}".format(avg), color="black")
+            i += 1
+            x_labels.append("{} param{}".format(path, p))
+    plt.xticks(list(range(len(x_labels))), x_labels, rotation=90)
+    # plt.legend()
+    plt.savefig(save_path+".png", dpi=300, bbox_inches='tight')
+    plt.close()
+    plt.clf()

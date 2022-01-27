@@ -83,40 +83,22 @@ def percentile_worst(ranked, perc, metric):
                     min_true_auc = metric[item[1]]
                     min_pk = item[1]
         worst_per_run.append([rk, min_pk, min_true_auc])
+        print("chosen", rk, min_pk, min_true_auc)
     return worst_per_run
-# def percentile(ranked, low, high, mode="pessimistic"):
-#     filtered = []
-#     for rk in ranked.keys():
-#         l = int(len(ranked[rk]) * low)
-#         h = int(len(ranked[rk]) * high)
-#         filtered += [[rk, kv[0], kv[1]] for kv in ranked[rk][l: h]] # run number, parameter, performance
-#
-#     if mode=="pessimistic":
-#         worst_per_run = []
-#         for rk in ranked.keys():
-#             temp = {}
-#             for item in filtered:
-#                 if item[0] == rk:
-#                     temp[item[1]] = item[2]
-#             sorted = sorting(temp)
-#             worst_per_run.append([rk, sorted[-1][0], sorted[-1][1]])
-#         return worst_per_run
-#     elif mode=="optimistic":
-#         best_per_run = []
-#         for rk in ranked.keys():
-#             temp = {}
-#             for item in filtered:
-#                 if item[0] == rk:
-#                     temp[item[1]] = item[2]
-#             sorted = sorting(temp)
-#             best_per_run.append([rk, sorted[0][0], sorted[0][1]])
-#         return best_per_run
-#     else:
-#         return filtered
+
+def top_perf_single_run(ranked, metric):
+    res = {}
+    for rk in ranked.keys():
+        pk = ranked[rk][0][0]
+        if pk not in res.keys():
+            res[pk] = []
+        res[pk].append(metric[rk][pk])
+    return res
 
 def percentile_avgeraged_run(group_by_param, perc):
     # group_by_param = average_run(data)
     sorted_group = sorting(group_by_param)
+    # print("percentile_avgeraged_run", sorted_group)
     h = min(int(len(sorted_group) * perc), len(sorted_group)-1)
     return sorted_group[h][1]
 
@@ -466,9 +448,6 @@ def loading_average(models_paths, source="reward", outer=None, sparse_reward=Non
             data = load_epReturn(paths, outer=outer)
 
         # New data files
-        elif source == "totals":
-            data = load_total(paths, "return", outer=outer)
-
         elif source == "total-reward":
             data = load_total(paths, "reward", outer=outer)
         elif source == "total-episode":

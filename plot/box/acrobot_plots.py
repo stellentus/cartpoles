@@ -6,7 +6,7 @@ from plot.box.utils_plot import *
 from plot.box.paths_acrobot import *
 
 def top_param():
-    '''
+
     calibration = {
         "knn": ac_knn_5k,
         "knn(laplace)": ac_laplace_knn_5k,
@@ -18,19 +18,19 @@ def top_param():
     random = ac_rnd
     te = {"true": ac_true_temp}
     fqi = {"fqi": ac_fqi_eps0p1}
-    plot_compare_top(te, calibration, fqi, random, "totals", "../img/acrobot_top_fqi0.1", outer=30, res_scale=-1)
+    # plot_compare_top(te, calibration, fqi, random, "totals", "../img/acrobot_top_fqi0.1", outer=30, res_scale=-1)
 
     calibration = {
         "15k knn": ac_knn_15k,
         # "10k knn": ac_knn_10k,
         "5k knn": ac_knn_5k,
-        "2.5k knn": ac_knn_2p5k,
-        # "1k knn": ac_knn_1k,
-        # "500 knn": ac_knn_500,
+        # "2.5k knn": ac_knn_2p5k,
+        "1k knn": ac_knn_1k,
+        "500 knn": ac_knn_500,
     }
     random = ac_rnd
     te = {"true": ac_true_temp}
-    # plot_compare_top(te, calibration, None, random, "totals", "../img/acrobot_knn_size", outer=30, res_scale=-1, ylim=[80, 300])
+    plot_compare_top(te, calibration, None, [], "totals", "../img/acrobot_knn_size_v4.8", outer=30, res_scale=-1)#, ylim=[80, 300])
 
     calibration = {
         "15k knn(laplace)": ac_laplace_knn_15k,
@@ -67,7 +67,7 @@ def top_param():
     random = ac_rnd
     te = {"true": ac_true_temp}
     # plot_compare_top(te, calibration, None, random, "totals", "../img/acrobot_network_size", outer=30, res_scale=-1, ylim=[80, 1000])
-    '''
+
     
     
 

@@ -62,9 +62,9 @@ plt.tight_layout()
 # colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
 for j in range(len(optimal_all)):
-    plt.scatter(0.5 + np.random.random()*0.1, -random_all[j], color='none', edgecolor=c_dict["Random policy"], s=6)
-    plt.scatter(1.0 + np.random.random()*0.1, -suboptimal_all[j], color='none', edgecolor=c_dict["Medium policy"], s=6)
-    plt.scatter(1.5 + np.random.random()*0.1, -optimal_all[j], color='none', edgecolor=c_dict["Near-optimal policy"], s=6)
+    plt.scatter(0.5 + np.random.random()*0.1, -random_all[j], color='none', edgecolor=c_dict["Random"], s=6)
+    plt.scatter(1.0 + np.random.random()*0.1, -suboptimal_all[j], color='none', edgecolor=c_dict["Medium"], s=6)
+    plt.scatter(1.5 + np.random.random()*0.1, -optimal_all[j], color='none', edgecolor=c_dict["Near-optimal"], s=6)
     # plt.scatter(0.5 + np.random.random()*0.1, -random_all[j], color='none', edgecolor=colors[0], s=6)
     # plt.scatter(1.0 + np.random.random()*0.1, -suboptimal_all[j], color='none', edgecolor=colors[1], s=6)
     # plt.scatter(1.5 + np.random.random()*0.1, -optimal_all[j], color='none', edgecolor=colors[2], s=6)
@@ -75,11 +75,11 @@ for j in range(54):
 plt.savefig('../img/finalPlots/cartpole/plot4/plot4_waterfall.pdf',dpi=300, bbox_inches='tight')
 plt.close()
 
-info = {
-    "Random policy": {"color": c_dict["Random policy"], "style": "-"},
-    "Medium policy": {"color": c_dict["Medium policy"], "style": "-"},
-    "Near-optimal policy": {"color": c_dict["Near-optimal policy"], "style": "-"},
-    "Random selection": {"color": c_dict["Random"], "style": "-"},
-    "True performance": {"color": "black", "style": "-"},
-}
-draw_label(info, "../img/finalPlots/cartpole/plot4/plot4_waterfall", 5)
+# info = {
+#     "Random": {"color": c_dict["Random"], "style": "-"},
+#     "Medium": {"color": c_dict["Medium"], "style": "-"},
+#     "Near-optimal": {"color": c_dict["Near-optimal"], "style": "-"},
+#     "Random selection": {"color": c_dict["Random"], "style": "-"},
+#     "True perf.": {"color": "black", "style": "-"},
+# }
+# draw_label(info, "../img/finalPlots/cartpole/plot4/plot4_waterfall", 1)
