@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 
 	ao "github.com/stellentus/cartpoles/lib/util/array-opr"
 	"github.com/stellentus/cartpoles/lib/util/buffer"
@@ -315,7 +316,7 @@ func (agent *ESarsa) InitializeWithSettings(set EsarsaSettings, lw lockweight.Lo
 
 	}
 
-	//agent.FillHashTable()
+	agent.FillHashTable()
 	//test := make([]float64, agent.StateDim)
 	//for j := 0; j < 10; j++ {
 	//	for i := 0; i < agent.StateDim; i++ {
@@ -485,7 +486,6 @@ func (agent *ESarsa) Step(state rlglue.State, reward float64) rlglue.Action {
 	}
 
 	agent.delta = reward // TD error calculation begins
-
 	for _, value := range agent.oldStateActiveFeatures {
 		oldA, _ := tpo.GetInt(agent.oldAction)
 		agent.delta -= agent.weights[oldA][value] // TD error prediction calculation
@@ -503,6 +503,7 @@ func (agent *ESarsa) Step(state rlglue.State, reward float64) rlglue.Action {
 			agent.Epsilon = agent.EpsilonAfterLock
 		}
 	}
+	//fmt.Println("Step", agent.weights[0][0], agent.weights[0][len(agent.weights[0])-1], agent.weights[len(agent.weights)-1][0], agent.weights[len(agent.weights)-1][len(agent.weights[0])-1])
 
 	if agent.lock == false {
 		for j := range agent.weights {
@@ -986,19 +987,28 @@ func (agent *ESarsa) LoadWeights(loadFromBase string) error {
 	//f.Close()
 
 	if agent.LoadW {
-		fileP := path.Join(loadFromBase, "param_"+strconv.Itoa(agent.sweepIdx)+"/weight-"+strconv.Itoa(agent.runNum)+".pkl")
+		ext := strings.Split(loadFromBase, ".")
+		var fileP string
+		if ext[len(ext)-1] == "pkl" {
+			// Load the same weight for all random seeds
+			fileLst := strings.Split(loadFromBase, "param_{}")
+			fileP = path.Join(fileLst[0], "param_"+strconv.Itoa(agent.sweepIdx)+fileLst[1])
+		} else {
+			// Load from corresponding random seed
+			fileP = path.Join(loadFromBase, "param_"+strconv.Itoa(agent.sweepIdx)+"/weight-"+strconv.Itoa(agent.runNum)+".pkl")
+		}
 		fileW, err := os.Open(fileP)
 		agent.Message("Load weight from", fileP)
 		if err != nil {
 			agent.Message(err)
-			return err
+			os.Exit(1)
 		}
 		decoderW := gob.NewDecoder(fileW)
 		agent.weights = [][]float64{}
 		err = decoderW.Decode(&agent.weights)
 		if err != nil {
 			agent.Message(err)
-			return err
+			os.Exit(1)
 		}
 		err = fileW.Close()
 
@@ -1021,7 +1031,7 @@ func (agent *ESarsa) LoadWeights(loadFromBase string) error {
 		//}
 		//err = fileT.Close()
 
-		//fmt.Println(agent.weights[0][0], agent.weights[0][len(agent.weights[0])-1], agent.weights[len(agent.weights)-1][0], agent.weights[len(agent.weights)-1][len(agent.weights[0])-1])
+		//fmt.Println("LoadWeight", agent.weights[0][0], agent.weights[0][len(agent.weights[0])-1], agent.weights[len(agent.weights)-1][0], agent.weights[len(agent.weights)-1][len(agent.weights[0])-1])
 		//file, err = os.Create(path.Join(loadFromBase, "param_0/tempAfterLoad-"+strconv.Itoa(agent.runNum)+".txt"))
 		//if err != nil {
 		//	return err
