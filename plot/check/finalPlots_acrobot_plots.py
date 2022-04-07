@@ -28,7 +28,7 @@ def top_param():
     fqi = {"FQI": ac_fqi_tc}
     #cem = {"CEM": ac_cem}
     # plot_compare_top(true, calibration, fqi, random, "totals", "../img/finalPlots/acrobot/plot1/plot1_models",
-    #                  outer=30, res_scale=-1, ylim=[[100, 250], []], ylabel="Step per episode", right_ax=["Calibration-NN", "FQI", "Random"],
+    #                  outer=30, res_scale=-1, ylim=[100, 250], ylabel="Steps per episode", right_ax=["Calibration-NN", "FQI", "Random"],
     #                  label_ncol=1)
 
     # PLOT 2
@@ -40,7 +40,7 @@ def top_param():
     }
     true = {"true": ac_true}
     # plot_compare_top(true, calibration, None, [], "totals", "../img/finalPlots/acrobot/plot2/plot2_size",
-    #                  outer=30, res_scale=-1, ylim=[[110, 115]], ylabel="Step per episode (Median)", right_ax=[],
+    #                  outer=30, res_scale=-1, ylim=[110, 115], ylabel="Steps per episode (Median)", right_ax=[],
     #                  label_ncol=3, plot="bar", true_perf_label=False)
 
 
@@ -50,7 +50,7 @@ def top_param():
         "Naive": ac_knnlaplace_bad_5k_new,
     }
     # plot_compare_top(true, calibration, None, [], "totals", "../img/finalPlots/acrobot/plot2/plot2_policy",
-    #                  outer=30, res_scale=-1, ylim=[[110, 123]], ylabel="Step per episode (Median)", right_ax=[],
+    #                  outer=30, res_scale=-1, ylim=[110, 123], ylabel="Steps per episode (Median)", right_ax=[],
     #                  label_ncol=3, plot="bar", true_perf_label=False)
 
     # PLOT 3
@@ -61,11 +61,15 @@ def top_param():
         "Esarsa transfer (true)": acshift_esarsa_true_trans,
         "Esarsa transfer (calibration)": acshift_esarsa_calibration_trans,
     }
+    sp_run_num = {
+        "Esarsa transfer (true)": acshift_esarsa_true_trans,
+        "Esarsa transfer (calibration)": acshift_esarsa_calibration_trans,
+    }
     fqi = {"FQI": acshift_fqi_tc_optim_5k}
     true = {"true": acshift_true}
     # plot_compare_top(true, calibration, fqi, [], "totals", "../img/finalPlots/acrobot/plot3/plot3_shift",
-    #                  load_perf=show_perform,
-    #                  outer=30, res_scale=-1, yscale="log", ylim=[[200, 15000]], ylabel="Step per episode", right_ax=[],
+    #                  load_perf=[show_perform, sp_run_num],
+    #                  outer=30, res_scale=-1, yscale="log", ylim=[200, 15000], ylabel="Steps per episode", right_ax=[],
     #                  label_ncol=2, true_perf_label=False)
 
     # PLOT CEM
@@ -73,11 +77,11 @@ def top_param():
         "Calibration-KNN": ac_knnlaplace_optim_5k
     }
     true = {"true": ac_true}
-    cem = {"calibration (cem)": ac_cemlaplace_optim_5k}
+    cem = {"Calibration (CEM)": ac_cemlaplace_optim_5k}
     fqi = {"FQI": ac_fqi_tc}
-    # plot_compare_top(true, calibration, None, [], "totals", "../img/finalPlots/acrobot/plot5/plot5_cem_knnlaplace", cem=cem,
-    #                   outer=30, res_scale=-1, ylim=[], ylabel="Steps per episode", right_ax=[], plot ='box') #[90, 200], []
-    # # plot_generation(true, calibration, ranges, "totals", "../img/finalPlots/acrobot/plot1/plot1_models_CEM", ylim=[], outer=30, sparse_reward=-1, max_len=1000, res_scale=-1)
+    plot_compare_top(true, calibration, None, [], "totals", "../img/finalPlots/acrobot/plot5/plot5_cem_knnlaplace", cem=cem,
+                      outer=30, res_scale=-1, ylim=[], ylabel="Steps per episode", right_ax=[], plot ='box') #[90, 200], []
+    # plot_generation(true, calibration, ranges, "totals", "../img/finalPlots/acrobot/plot1/plot1_models_CEM", ylim=[], outer=30, sparse_reward=-1, max_len=1000, res_scale=-1)
 
     # PLOT RAW
     calibration = {
@@ -90,9 +94,9 @@ def top_param():
     true = {"true": ac_true}
     fqi = {"FQI": ac_fqi_tc}
     #cem = {"CEM": ac_cem}
-    plot_compare_top(true, calibration, fqi, [], "totals", "../img/finalPlots/acrobot/appendix/raw",
-                     outer=30, res_scale=-1, ylim=[[100, 250], []], ylabel="Step per episode", right_ax=["FQI", "Random"],
-                     label_ncol=1)
+    # plot_compare_top(true, calibration, fqi, [], "totals", "../img/finalPlots/acrobot/appendix/raw",
+    #                  outer=30, res_scale=-1, ylim=[100, 250], ylabel="Steps per episode", right_ax=["FQI", "Random"],
+    #                  label_ncol=1)
 
     # PLOT AC
     calibration = {
@@ -106,18 +110,18 @@ def top_param():
     #     "AC": ac_actorcritic,
     # }
     # plot_compare_agents(true, calibration, None, [], "totals", "../img/finalPlots/acrobot/appendix/ac",
-    #                     outer=30, res_scale=-1, ylim=[[30, 140]], ylabel="Step per episode", right_ax=[],
+    #                     outer=30, res_scale=1, ylim=[[30, 140]], ylabel="Return per episode", right_ax=[],
     #                     label_ncol=3)
     calibration = {
         "Calibration-KNN": ac_actorcritic_knnlaplace_optim,
     }
-    random = random_generator(36)
+    random = random_generator(16)
     true = {"true": ac_actorcritic}
     fqi = {"FQI": ac_fqi_tc}
     #cem = {"CEM": ac_cem}
-    plot_compare_top(true, calibration, fqi, random, "totals", "../img/finalPlots/acrobot/appendix/ac",
-                     outer=30, res_scale=-1, ylim=[[50, 250], []], ylabel="Step per episode", right_ax=["FQI", "Random"],
-                     label_ncol=1)
+    # plot_compare_top(true, calibration, fqi, random, "totals", "../img/finalPlots/acrobot/appendix/ac",
+    #                  outer=30, res_scale=-1, ylim=[60, 100], ylabel="Steps per episode", right_ax=["FQI", "Random"],
+    #                  label_ncol=1)
 
     # PLOT FQI NN
     calibration = {
@@ -127,11 +131,12 @@ def top_param():
         "FQI-TC": ac_fqi_tc,
         "FQI-NN": ac_fqi_nn,
     }
+    sp_run_num = show_perform
     true = {"true": ac_true}
-    plot_compare_top(true, calibration, None, [], "totals", "../img/finalPlots/acrobot/appendix/fqi",
-                     load_perf=show_perform,
-                     outer=30, res_scale=-1, ylim=[[100, 250]], ylabel="Step per episode", right_ax=["FQI-NN", "FQI-TC"],
-                     label_ncol=2, true_perf_label=False)
+    # plot_compare_top(true, calibration, None, [], "totals", "../img/finalPlots/acrobot/appendix/fqi",
+    #                  load_perf=[show_perform, sp_run_num],
+    #                  outer=30, res_scale=-1, ylim=[108, 150], ylim2=[0, 2000], ylabel="Steps per episode", right_ax=["FQI-NN", "FQI-TC"],
+    #                  label_ncol=2, true_perf_label=False)
 
 def sweep_model():
     '''
@@ -171,7 +176,7 @@ def sweep_model():
     #random = ac_rnd
     true = {"true": ac_true_old}
     #fqi = {"FQI": ac_fqi_tc}
-    plot_generation(true, calibration, ranges, "totals", "../img/finalPlots/acrobot/plot1/plot1_models_CEM", ylim=[], outer=30, sparse_reward=-1, max_len=1000, res_scale=-1)
+    # plot_generation(true, calibration, ranges, "totals", "../img/finalPlots/acrobot/plot1/plot1_models_CEM", ylim=[], outer=30, sparse_reward=-1, max_len=1000, res_scale=-1)
 
 
 def data_density():

@@ -18,9 +18,9 @@ def top_param():
     true = {"true": pr_true}
     fqi = {"FQI": pr_fqi_tc}
     #cem = {"cem": pr_cem}
-    # plot_compare_top(true, calibration, fqi, random, "totals", "../img/finalPlots/puddlerand/plot1/plot1_models",
-    #                  outer=30, ylim=[[-100, -20], []], ylabel="Return per episode", right_ax=["FQI", "Random"],
-    #                  label_ncol=6)
+    plot_compare_top(true, calibration, fqi, random, "totals", "../img/finalPlots/puddlerand/plot1/plot1_models",
+                     outer=30, ylim=[-100, -20], ylabel="Return per episode", right_ax=["FQI", "Random"],
+                     label_ncol=6)
 
     # PLOT 2
     calibration = {
@@ -30,18 +30,18 @@ def top_param():
         "Size = 500": pr_knnlaplace_avg_500_new,
     }
     true = {"true": pr_true}
-    # plot_compare_top(true, calibration, None, [], "totals", "../img/finalPlots/puddlerand/plot2/plot2_size",
-    #                  outer=30, ylim=[[-34, -27]], ylabel="Return per episode", right_ax=[],
-    #                  label_ncol=3, plot="bar")
+    plot_compare_top(true, calibration, None, [], "totals", "../img/finalPlots/puddlerand/plot2/plot2_size",
+                     outer=30, ylim=[-34, -27], ylabel="Return per episode", right_ax=[],
+                     label_ncol=3, plot="bar")
 
     calibration = {
         "Optimal": pr_knnlaplace_optim_5k_new,
         "Medium": pr_knnlaplace_avg_5k_new,
         "Naive": pr_knnlaplace_bad_5k_new,
     }
-    # plot_compare_top(true, calibration, None, [], "totals", "../img/finalPlots/puddlerand/plot2/plot2_policy",
-    #                  outer=30, ylim=[[-34, -27]], ylabel="Return per episode", right_ax=[],
-    #                  label_ncol=3, plot="bar", true_perf_label=False)
+    plot_compare_top(true, calibration, None, [], "totals", "../img/finalPlots/puddlerand/plot2/plot2_policy",
+                     outer=30, ylim=[-34, -27], ylabel="Return per episode", right_ax=[],
+                     label_ncol=3, plot="bar", true_perf_label=False)
 
     # PLOT CEM
     calibration = {
@@ -77,9 +77,9 @@ def top_param():
     true = {"true": pr_true}
     fqi = {"FQI": pr_fqi_tc}
     #cem = {"cem": pr_cem}
-    # plot_compare_top(true, calibration, fqi, [], "totals", "../img/finalPlots/puddlerand/appendix/raw",
-    #                  outer=30, ylim=[[-100, -20], []], ylabel="Return per episode", right_ax=["FQI", "Random", "NN-raw"],
-    #                  label_ncol=6)
+    plot_compare_top(true, calibration, fqi, [], "totals", "../img/finalPlots/puddlerand/appendix/raw",
+                     outer=30, ylim=[-100, -20], ylabel="Return per episode", right_ax=["FQI", "Random", "NN-raw"],
+                     label_ncol=6)
 
     # PLOT Agents
     # calibration = {
@@ -98,26 +98,26 @@ def top_param():
     calibration = {
         "Calibration-KNN": pr_actorcritic_knnlaplace_optim,
     }
-    random = random_generator(36)
+    random = random_generator(16)
     true = {"true": pr_actorcritic}
     fqi = {"FQI": pr_fqi_tc}
     #cem = {"cem": pr_cem}
     plot_compare_top(true, calibration, fqi, random, "totals", "../img/finalPlots/puddlerand/appendix/ac",
-                     outer=30, ylim=[[-100, -20], []], ylabel="Return per episode", right_ax=["FQI", "Random"],
+                     outer=30, ylim=[-100, -20], ylim2=[-8000, 0], ylabel="Return per episode", right_ax=["FQI", "Random"],
                      label_ncol=6)
 
     # PLOT FQI NN
     calibration = {
         "Calibration": pr_knnlaplace_optim_5k,
     }
-    show_perform = {
+    fqi = {
         "FQI-TC": pr_fqi_tc,
         "FQI-NN": pr_fqi_nn,
     }
     true = {"true": pr_true}
     plot_compare_top(true, calibration, fqi, [], "totals", "../img/finalPlots/puddlerand/appendix/fqi",
-                     load_perf=show_perform,
-                     outer=30, ylim=[[-100, -20]], ylabel="Return per episode", right_ax=["FQI-NN", "FQI-TC"],
+                     # outer=30, ylim=[-150, -20], ylabel="Return per episode", right_ax=["FQI-NN", "FQI-TC"],
+                     outer=30, ylim=[], ylim2=[-7500, 0], ylabel="Return per episode", right_ax=["FQI-NN", "FQI-TC"],
                      label_ncol=2, true_perf_label=False)
 
 

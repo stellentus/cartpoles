@@ -28,17 +28,19 @@ acshift_knnlaplace_optim_5k = [basepath + "acrobot/offline_learning/knn/learning
 acshift_esarsa_true_trans = [basepath + "acrobot_shift/policy_transfer/shift/load_default/esarsa/all/"] # used
 # acshift_esarsa_calibration_trans = ["../../data/hyperparam_v5/acrobot_shift/policy_transfer/shift/load_calibration_default/esarsa/fixed_all/"] # used
 acshift_esarsa_calibration_trans = [basepath + "acrobot_shift/policy_transfer/shift/load_calibration_default/esarsa/fixed_all/"] # used
-acshift_fqi_tc_optim_5k = [basepath + "acrobot_shift/policy_transfer/shift/load_default/fqi-linear/lambda1e-3/"]
-acshift_fqi_nn_optim_5k = [basepath + "acrobot_shift/policy_transfer/shift/load_default/fqi/lambda1e-3/"]
+acshift_fqi_tc_optim_5k = [basepath + "acrobot_shift/policy_transfer/shift/load_default/fqi-linear/fqi-adam/alpha_hidden_epsilon/step5k_env/optimalfixed_eps0/lambda1e-3/lockat_baseline_online/"]
+acshift_fqi_nn_optim_5k = [basepath + "acrobot_shift/policy_transfer/shift/load_default/fqi/fqi-adam/alpha_hidden_epsilon/step5k_env/optimalfixed_eps0/earlystop/lambda1e-3/lockat_baseline_online"]
+# acshift_fqi_tc_optim_5k = [basepath + "acrobot_shift/policy_transfer/shift/load_default/fqi-linear/lambda1e-3/"]
+# acshift_fqi_nn_optim_5k = [basepath + "acrobot_shift/policy_transfer/shift/load_default/fqi/lambda1e-3/"]
 
 # PLOT temp
 ac_dqn = [basepath + "acrobot/online_learning/dqn/step600k/sweep/"]
 ac_actorcritic = [basepath + "acrobot/online_learning/ac/step30k/sweep/"] # used
 ac_dqn_knnlaplace_optim = [basepath + "acrobot/offline_learning/knn/learning/k3_laplace/timeout2k/dqn/step5k_env/data_optimal/drop0/sweep_rep1/"]
-ac_actorcritic_knnlaplace_optim = [basepath + "acrobot/offline_learning/knn/learning/k3_laplace/timeout500/ac/step15k_env/data_optimal/drop0/sweep_rep1/"] # used
+ac_actorcritic_knnlaplace_optim = [basepath + "acrobot/offline_learning/knn/learning/k3_laplace/timeout500/ac/step5k_env/data_optimal/drop0/sweep_rep1/"] # used
 
 # PLOT CEM
-ac_cemlaplace_optim_5k = [basepath + "acrobot/list/CEMofflineList_KNNlaplace/esarsa/step15k/sweep/"] # used
+ac_cemlaplace_optim_5k = [basepath + "acrobot/online_learning/esarsa/step15k/CEMOnlineLearningListSweep_100iters"]
 
 ac_true_old = [basepath + "hyperparam_ap_CEM_gridsearch/data/hyperparam_ap/acrobot/online_learning/esarsa/step15k/sweep/"]
 ac_knnraw_optim_5k_old = [basepath + "hyperparam_ap_CEM_gridsearch/data/hyperparam_ap/acrobot/offline_learning/k3_timeout750/esarsa/step15k/optimalfixed_eps0/sweep/"]
