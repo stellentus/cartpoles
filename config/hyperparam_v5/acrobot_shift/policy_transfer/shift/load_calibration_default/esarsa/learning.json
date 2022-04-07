@@ -20,7 +20,7 @@
     },
 
     "weight-load": true,
-    "weight-load-path": "data/hyperparam_v5/acrobot_shift/calibration_learning/default/k3_laplace/timeout500/esarsa/step5k_env/data_optimal/drop0/step50k_all/",
+    "weight-load-path": "data/hyperparam_v5/acrobot_shift/calibration_learning/default/k3_laplace/timeout500/esarsa/step5k_env/data_optimal/drop0/step15k_all/",
 
     "lock-weight": false,
 

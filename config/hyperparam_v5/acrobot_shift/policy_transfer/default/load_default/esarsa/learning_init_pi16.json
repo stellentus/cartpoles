@@ -20,7 +20,7 @@
     },
 
     "weight-load": true,
-    "weight-load-path": "data/hyperparam_v5/acrobot_shift/online_learning/default/esarsa/step50k/sweep/param_{}/weight-16.pkl",
+    "weight-load-path": "data/hyperparam_v5/acrobot_shift/online_learning/default/esarsa/step15k/sweep/param_{}/weight-16.pkl",
 
     "lock-weight": false,
 

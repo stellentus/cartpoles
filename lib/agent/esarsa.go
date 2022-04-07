@@ -493,6 +493,7 @@ func (agent *ESarsa) Step(state rlglue.State, reward float64) rlglue.Action {
 	}
 
 	newAction, epsilons := agent.SoftmaxPolicy(newStateActiveFeatures) // Exp-Sarsa-L policy
+	//fmt.Println(state, epsilons)
 
 	if agent.lw.UseLock {
 		if agent.lw.LockCondition != "beginning" {
@@ -985,14 +986,17 @@ func (agent *ESarsa) LoadWeights(loadFromBase string) error {
 	//	f.WriteString("\n")
 	//}
 	//f.Close()
-
-	if agent.LoadW {
+	if agent.LoadW && loadFromBase != "" {
 		ext := strings.Split(loadFromBase, ".")
 		var fileP string
 		if ext[len(ext)-1] == "pkl" {
 			// Load the same weight for all random seeds
 			fileLst := strings.Split(loadFromBase, "param_{}")
-			fileP = path.Join(fileLst[0], "param_"+strconv.Itoa(agent.sweepIdx)+fileLst[1])
+			if len(fileLst) > 1 {
+				fileP = path.Join(fileLst[0], "param_"+strconv.Itoa(agent.sweepIdx)+fileLst[1])
+			} else {
+				fileP = loadFromBase
+			}
 		} else {
 			// Load from corresponding random seed
 			fileP = path.Join(loadFromBase, "param_"+strconv.Itoa(agent.sweepIdx)+"/weight-"+strconv.Itoa(agent.runNum)+".pkl")

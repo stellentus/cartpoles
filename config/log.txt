@@ -1,0 +1,25 @@
+V1:
+Change hyperparameter set
+
+V2:
+
+Add inner loop when running calibration model. Given 1 dataset, repeat with different random seeds.
+Add  ``"total-logs": 10` in both agent and environment settings, to define the total number of outer loop
+
+Random restart: send 2 dataset into knn model, one with random restart, for generating k-nearest neighbor; one without random restart, for generating true start state in model
+
+V3:
+
+Random restart: change from state random restart to state-action random restart. Take random action at the 1st step of each episode for data collection.
+
+V4:
+Collect data with not fully learned policy, with a larger gamma=0.99858261302
+
+V5:
+KNN model uses distance between representations rather than between environment states.
+
+V6.9:
+FQI with larger data set
+
+V7:
+FQI with changed validation: use learning net & .Precition() to calculate error, with early learning

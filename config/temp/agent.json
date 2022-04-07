@@ -1,0 +1,18 @@
+{
+	"Name": "esarsa",
+	"Default": {
+		"gamma": 0.9,
+		"env-name": "cartpole",
+		"adaptive-alpha": true,
+		"epsilon": 0,
+		"numberOfActions": 0,
+		"epsilon-after-lock": 0,
+		"weight-init": 0
+	},
+	"CemOptions": [
+		{ "Name": "tilings", "Discretes": [8, 16, 32], "IsDiscrete": true, "IsInt": true },
+		{ "Name": "tiles", "Discretes": [2, 4, 8], "IsDiscrete": true, "IsInt": true },
+		{ "Name": "lambda", "Upper": 1, "Lower": 0, "Discretes": [0] },
+		{ "Name": "alpha", "Upper": 1, "Lower": 0, "Discretes": [0] }
+	]
+}

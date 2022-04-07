@@ -1,0 +1,10 @@
+{
+	"Name": "cartpole",
+	"Settings": {
+		"total-logs": 10,
+		"seed": 100,
+		"percent_noise_action": 0.01,
+		"rwd_position": true,
+        "datalog": "data/temp/"
+	}
+}

@@ -1,5 +1,5 @@
 {
-	"ScoreType": "episode-longer-is-better",
+	"ScoreType": "average-return-per-episode",
 	"NumWorkers": -1,
 	"NumIterations": 100,
 	"NumSamples": 32,

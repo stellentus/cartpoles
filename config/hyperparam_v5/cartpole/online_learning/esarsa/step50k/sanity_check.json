@@ -1,0 +1,40 @@
+{
+	"comment": "This is the config file for expected SARSA lambda agent for the continuing cartpole environment.",
+	"agent-name": "esarsa",
+	"environment-name": "cartpole",
+	"agent-settings": {
+		"gamma": 0.9,
+		"state-len": 4,
+		"env-name": "cartpole",
+		"sweep": {
+			"epsilon": [0.081],
+			"epsilon-after-lock": [0.081],
+			"tilings": [16],
+			"tiles": [8],
+			"lambda": [0.942],
+			"alpha": [0.0067],
+			"is-stepsize-adaptive": [false],
+			"adaptive-alpha": [0]
+		},
+
+		"weight-load": true,
+		"weight-load-path": "data/hyperparam_v5/cartpole/offline_sarsa/step15k_env/data_mixed/best/param_0/weight-0.pkl",
+
+		"lock-weight": true,
+		"lock-condition": "beginning",
+    	"enable-debug": false,
+    	"seed": 1
+	},
+	"environment-settings": {
+		"seed": 1,
+    	"percent_noise_action": 0.01
+	},
+	"experiment-settings": {
+		"randomize_start_state_beforeLock": false,
+    	"randomize_start_state_afterLock": false,
+		"steps": 50000,
+		"data-path": "data/hyperparam_v5/cartpole/online_learning/esarsa/step50k/temp/",
+		"should-log-totals": true,
+		"debug-interval": 0
+	}
+}

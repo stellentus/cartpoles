@@ -1,0 +1,9 @@
+{
+	"ScoreType": "continuing-last-half",
+	"NumWorkers": -1,
+	"NumIterations": 5,
+	"NumSamples": 16,
+	"NumRuns": 2,
+	"PercentElite": 0.5,
+	"Seed": 42
+}

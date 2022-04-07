@@ -283,7 +283,7 @@ def plot_generation(te, cms, ranges, source, title, ylim=None, yscale="linear", 
 
 def plot_compare_top(te, cms, fqi, rand_lst, source, title,
                      cem=None, load_perf=None,
-                     ylim=[], yscale="linear", res_scale=1, outer=None, sparse_reward=None, max_len=np.inf, discount=1,
+                     ylim=[], ylim2=[], yscale="linear", res_scale=1, outer=None, sparse_reward=None, max_len=np.inf, discount=1,
                      ylabel="", right_ax=[], label_ncol=10, plot="box", true_perf_label=True):
     ranges = [0]
     # true env data dictionary
@@ -292,22 +292,26 @@ def plot_compare_top(te, cms, fqi, rand_lst, source, title,
 
     # fqi data
     # # all performance
+    fqi_data_allkeys = {}
     if fqi is not None:
-        fqi_data_all = loading_average(fqi, source, outer=outer, sparse_reward=sparse_reward, max_len=max_len)["FQI"] # 30 runs in total, but different parameters
+        fqi_data_allkeys = loading_average(fqi, source, outer=outer, sparse_reward=sparse_reward, max_len=max_len)#["FQI"] # 30 runs in total, but different parameters
         # fqi_data = []
         # for rk in fqi_data_all.keys():
         #     for pk in fqi_data_all[rk].keys():
         #         fqi_data.append(fqi_data_all[rk][pk])
-        total_fqi_data = {}
-        fqi_data = []
-        for rk in fqi_data_all.keys():
-            for pk in fqi_data_all[rk].keys():
-                if pk not in total_fqi_data:
-                    total_fqi_data[pk] = [fqi_data_all[rk][pk]]
-                else:
-                    total_fqi_data[pk].append(fqi_data_all[rk][pk])
-        for pk in total_fqi_data.keys():
-            fqi_data.append(np.mean(total_fqi_data[pk]))
+        for key in fqi_data_allkeys.keys():
+            fqi_data_all = fqi_data_allkeys[key]
+            total_fqi_data = {}
+            fqi_data = []
+            for rk in fqi_data_all.keys():
+                for pk in fqi_data_all[rk].keys():
+                    if pk not in total_fqi_data:
+                        total_fqi_data[pk] = [fqi_data_all[rk][pk]]
+                    else:
+                        total_fqi_data[pk].append(fqi_data_all[rk][pk])
+            for pk in total_fqi_data.keys():
+                fqi_data.append(np.mean(total_fqi_data[pk]))
+            fqi_data_allkeys[key] = fqi_data
 
     if cem is not None:
         # cem_data_all = loading_average(cem, source, outer=outer, sparse_reward=sparse_reward, max_len=max_len)["cem"] # 30 runs in total, but different parameters
@@ -393,12 +397,13 @@ def plot_compare_top(te, cms, fqi, rand_lst, source, title,
     if cem is not None:
         bsl["Calibration (CEM)"] = [cem_data]
     if fqi is not None:
-        bsl["FQI"] = [fqi_data]
+        for k in fqi_data_allkeys.keys():
+            bsl[k] = fqi_data_allkeys[k]
     for k in bsl:
         filtered[k] = bsl[k]
 
     if plot == "box":
-        plot_boxs(filtered, te_thrd, ranges, title, ylim=ylim, yscale=yscale, res_scale=res_scale, ylabel=ylabel, right_ax=right_ax, label_ncol=label_ncol)
+        plot_boxs(filtered, te_thrd, ranges, title, ylim=ylim, ylim2=ylim2, yscale=yscale, res_scale=res_scale, ylabel=ylabel, right_ax=right_ax, label_ncol=label_ncol)
         # plot_violins(filtered, te_thrd, ranges, title, ylim=ylim, yscale=yscale, res_scale=res_scale)
     elif plot == "bar":
         plot_bars(filtered, te_thrd, ranges, title, ylim=ylim, yscale=yscale, res_scale=res_scale, ylabel=ylabel, right_ax=right_ax, label_ncol=label_ncol,
@@ -461,7 +466,7 @@ def plot_bars(filtered, thrd, xlabel, title, ylim=[], yscale='linear', res_scale
 
     min_x = np.inf
     max_x = -np.inf
-    offset = -10e6 if ylim==[] else ylim[0][0]
+    offset = -10e6 if ylim==[] else ylim[0]
     info = {}
     for idx in range(len(all_models)):
         perct = filtered[all_models[idx]]
@@ -519,9 +524,18 @@ input:
         }
     thrd: [10 percentile threshold, 20 percentile threshold, 30 percentile threshold]
 """
-def plot_boxs(filtered, thrd, xlabel, title, ylim=[], yscale='linear', res_scale=1, ylabel="", right_ax=[], label_ncol=10, thrd_color_same=True):
+def plot_boxs(filtered, thrd, xlabel, title, ylim=[], ylim2=[], yscale='linear', res_scale=1, ylabel="", right_ax=[], label_ncol=10, thrd_color_same=True):
 
     all_models = list(filtered.keys())
+    temp1 = []
+    temp2 = []
+    for name in all_models:
+        if name in right_ax:
+            temp2.append(name)
+        else:
+            temp1.append(name)
+    all_models = temp1 + temp2
+
     xlocations = range(len(filtered[all_models[0]]))
     width = 0.2 / len(all_models) if len(xlocations) > 2 else 0.05
     space = 0.1
@@ -589,6 +603,8 @@ def plot_boxs(filtered, thrd, xlabel, title, ylim=[], yscale='linear', res_scale
     if ylim != [] and yscale != "log":
         # ax.set_ylim(ylim[0])
         ax.set_ylim(ylim)
+    if ylim2 != [] and yscale != "log":
+        rhs_axs.set_ylim(ylim2)
     if not vertline:
         rhs_axs.set_visible(False)
     elif vertline and len(thrd)>0:
@@ -612,8 +628,8 @@ def plot_boxs(filtered, thrd, xlabel, title, ylim=[], yscale='linear', res_scale
         if len(thrd) > 0:
             ytcs = [thrd_line[0].get_data()[1][0], 1000, 10000]
         else:
-            ytcs = [ylim[0][0], 1000, 10000]
-        ax.set_ylim(ylim[0][0], ymax)
+            ytcs = [ylim[0], 1000, 10000]
+        ax.set_ylim(ylim[0], ymax)
         ax.set_yticks(ytcs)
         ax.set_yticklabels(ytcs)
 
@@ -653,13 +669,13 @@ def plot_boxs(filtered, thrd, xlabel, title, ylim=[], yscale='linear', res_scale
 
     ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
     plt.setp(ax.get_yticklabels(), fontsize=15)
-    plt.setp(rhs_axs.get_yticklabels(), fontsize=15)
+    plt.setp(rhs_axs.get_yticklabels(), fontsize=15, color="red")
 
     # plt.legend()
     plt.tight_layout()
     # plt.show()
     print(title)
-    plt.savefig("{}.png".format(title))
+    plt.savefig("{}.pdf".format(title), dpi=300, bbox_inches='tight')
     plt.close()
     plt.clf()
 
@@ -1011,11 +1027,19 @@ def plot_learning_curve(path, param, mode="episodes", num_runs=30, ylim=[], sing
         single_p = []
         for run in range(num_runs):
             file = os.path.join(path, "param_{}".format(p), "{}-{}.csv".format(mode, run))
-            col = "episode lengths" if mode == "episodes" else "rewards"
+            if mode == "episodes":
+                col = "episode lengths"
+            elif mode == "returns":
+                col = "returns"
+            else:
+                col = "rewards"
             log = pd.read_csv(file)[col]
             steplog = []
             for i, stepep in enumerate(log[:-1]):
-                steplog += [stepep] * stepep
+                if mode == "episodes":
+                    steplog += [stepep] * stepep
+                else:
+                    steplog.append(stepep)
             single_p.append(steplog)
         res_all_runs[p] = single_p
 
