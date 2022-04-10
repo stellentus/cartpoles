@@ -1,0 +1,58 @@
+{
+    "agent-name": "esarsa",
+    "environment-name": "puddleworld",
+    "agent-settings": {
+        "gamma": 1.0,
+        "state-len": 2,
+        "env-name": "puddleworld",
+        "sweep": {
+            "tilings": [
+                16
+            ],
+            "tiles": [
+                8
+            ],
+            "is-stepsize-adaptive": [
+                true
+            ],
+            "alpha": [
+                0.0
+            ],
+            "lambda": [
+                0.1
+            ],
+            "epsilon": [
+                0.0
+            ],
+            "adaptive-alpha": [
+                0.09670298390136767
+            ],
+            "beta1": [
+                0.0
+            ],
+            "softmax-temp": [
+                5.472775259508048
+            ],
+            "weight-init": [
+                0.0
+            ]
+        },
+        "lock-weight": false,
+        "enable-debug": false,
+        "seed": 1
+    },
+    "environment-settings": {
+        "seed": 1
+    },
+    "experiment-settings": {
+        "randomize_start_state_beforeLock": false,
+        "randomize_start_state_afterLock": false,
+        "steps": 0,
+        "episodes": 1000000,
+        "max-run-length-episodic": 30000,
+        "data-path": "data/hyperparam_v5/puddlerand/online_learning/esarsa/step30k/cem_uniform_sample/param_4",
+        "should-log-totals": true,
+        "should-log-returns": false,
+        "debug-interval": 0
+    }
+}

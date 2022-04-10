@@ -1,0 +1,57 @@
+{
+    "agent-name": "esarsa",
+    "environment-name": "acrobot",
+    "agent-settings": {
+        "gamma": 1.0,
+        "state-len": 6,
+        "env-name": "acrobot",
+        "sweep": {
+            "tilings": [
+                16
+            ],
+            "tiles": [
+                8
+            ],
+            "is-stepsize-adaptive": [
+                true
+            ],
+            "alpha": [
+                0.0
+            ],
+            "lambda": [
+                0.8
+            ],
+            "epsilon": [
+                0.0
+            ],
+            "adaptive-alpha": [
+                0.030793495262497084
+            ],
+            "beta1": [
+                0.0
+            ],
+            "softmax-temp": [
+                2.5970054573785735
+            ],
+            "weight-init": [
+                0.0
+            ]
+        },
+        "lock-weight": false,
+        "enable-debug": false,
+        "seed": 1
+    },
+    "environment-settings": {
+        "seed": 1
+    },
+    "experiment-settings": {
+        "randomize_start_state_beforeLock": false,
+        "randomize_start_state_afterLock": false,
+        "steps": 0,
+        "episodes": 1000000,
+        "max-run-length-episodic": 15000,
+        "data-path": "data/hyperparam_v5/acrobot/online_learning/esarsa/step15k/cem_uniform_sample/param_26",
+        "should-log-totals": true,
+        "debug-interval": 0
+    }
+}
