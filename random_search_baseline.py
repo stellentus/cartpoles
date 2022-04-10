@@ -5,7 +5,7 @@ import numpy as np
 def sample(low, high, rng):
     return rng.uniform(low, high)
 
-def write_json(template, seed, range_dict, path):
+def write_json(template, seed, range_dict, path, online_template=None, online_path=None):
     rng = np.random.RandomState(seed)
     config_dict = copy.deepcopy(template)
     for key, r in range_dict.items():
@@ -16,6 +16,9 @@ def write_json(template, seed, range_dict, path):
     new_conf_file_c = path.format(seed)
     with open(new_conf_file_c, 'w') as conf:
         json.dump(config_dict, conf, indent=4)
+
+    if online_path is not None:
+        write_json(online_template, seed, range_dict, online_path, online_template=None, online_path=None)
 
 def acrobot_5k_opt():
     template = {
@@ -85,14 +88,52 @@ def acrobot_5k_opt():
             "debug-interval": 0
         }
     }
+    online_template = {
+        "agent-name": "esarsa",
+        "environment-name": "acrobot",
+        "agent-settings": {
+            "gamma": 1.0,
+            "state-len": 6,
+            "env-name": "acrobot",
+            "sweep": {
+                "tilings": [16],
+                "tiles": [8],
+                "is-stepsize-adaptive": [True],
+                "alpha": [0.0],
+                "lambda": [0.8],
+                "epsilon": [0.0],
+                "adaptive-alpha": [],
+                "beta1": [0.0],
+                "softmax-temp": [],
+                "weight-init": []
+            },
+            "lock-weight": False,
+            "enable-debug": False,
+            "seed": 1
+        },
+        "environment-settings": {
+            "seed": 1
+        },
+        "experiment-settings": {
+            "randomize_start_state_beforeLock": False,
+            "randomize_start_state_afterLock": False,
+            "steps": 0,
+            "episodes": 1000000,
+            "max-run-length-episodic": 15000,
+            "data-path": "data/hyperparam_v5/acrobot/online_learning/esarsa/step15k/gridsearch_uniform_sample/param_{}/",
+            "should-log-totals": True,
+            "debug-interval": 0
+        }
+    }
     range_dict = {
         "adaptive-alpha": [0.003, 0.3],
         "softmax-temp": [1, 100],
         "weight-init": [0, 16]
     }
     path = "config/hyperparam_v5/acrobot/offline_learning/knn/learning/k3_laplace/timeout500/esarsa/step5k_env/data_optimal/drop0/gridsearch_uniform_sample/param_{}.json"
+    online_path = "config/hyperparam_v5/acrobot/online_learning/esarsa/step15k/gridsearch_uniform_sample/param_{}.json"
     for seed in range(54): # 54 parameters, 30 datasets, 10 runs on calibration model each
-        write_json(template, seed, range_dict, path)
+        write_json(template, seed, range_dict, path, online_template=online_template, online_path=online_path)
 
 def puddle_world_5k_opt():
     template = {
@@ -145,8 +186,8 @@ def puddle_world_5k_opt():
             "rep-load-path": "data/hyperparam_v5/puddlerand/offline_learning/knn/env_training/step5k/optimalfixed_eps0/rep_laplace"
         },
         "experiment-settings": {
-            "randomize_start_state_beforeLock": False,
-            "randomize_start_state_afterLock": False,
+            "randomize_start_state_beforeLock": True,
+            "randomize_start_state_afterLock": True,
             "steps": 0,
             "episodes": 1000000,
             "max-run-length-episodic": 30000,
@@ -161,14 +202,53 @@ def puddle_world_5k_opt():
             "debug-interval": 0
         }
     }
+    online_template = {
+        "agent-name": "esarsa",
+        "environment-name": "puddleworld",
+        "agent-settings": {
+            "gamma": 1.0,
+            "state-len": 2,
+            "env-name": "puddleworld",
+            "sweep": {
+                "tilings": [16],
+                "tiles": [8],
+                "is-stepsize-adaptive": [True],
+                "alpha": [0.0],
+                "lambda": [0.1],
+                "epsilon": [0.0],
+                "adaptive-alpha": [],
+                "beta1": [0.0],
+                "softmax-temp": [],
+                "weight-init": []
+            },
+            "lock-weight": False,
+            "enable-debug": False,
+            "seed": 1
+        },
+        "environment-settings": {
+            "seed": 1
+        },
+        "experiment-settings": {
+            "randomize_start_state_beforeLock": True,
+            "randomize_start_state_afterLock": True,
+            "steps": 0,
+            "episodes": 1000000,
+            "max-run-length-episodic": 30000,
+            "data-path": "data/hyperparam_v5/puddlerand/online_learning/esarsa/step30k/gridsearch_uniform_sample/param_{}/",
+            "should-log-totals": True,
+            "should-log-returns": False,
+            "debug-interval": 0
+        }
+    }
     range_dict = {
         "adaptive-alpha": [0.01, 0.1],
         "softmax-temp": [1.0, 100.0],
         "weight-init": [0, 8]
     }
     path = "config/hyperparam_v5/puddlerand/offline_learning/knn/learning/k3_laplace/timeout1000/esarsa/step5k_env/data_optimal/drop0/gridsearch_uniform_sample/param_{}.json"
+    online_path = "config/hyperparam_v5/puddlerand/online_learning/esarsa/step30k/gridsearch_uniform_sample/param_{}.json"
     for seed in range(54): # 54 parameters, 30 datasets, 10 runs on calibration model each
-        write_json(template, seed, range_dict, path)
+        write_json(template, seed, range_dict, path, online_template=online_template, online_path=online_path)
 
 
 def acrobot_500_subopt():
@@ -240,13 +320,51 @@ def acrobot_500_subopt():
             "debug-interval": 0
         }
     }
+    online_template = {
+        "agent-name": "esarsa",
+        "environment-name": "acrobot",
+        "agent-settings": {
+            "gamma": 1.0,
+            "state-len": 6,
+            "env-name": "acrobot",
+            "sweep": {
+                "tilings": [16],
+                "tiles": [8],
+                "is-stepsize-adaptive": [True],
+                "alpha": [0.0],
+                "lambda": [0.8],
+                "epsilon": [0.0],
+                "adaptive-alpha": [],
+                "beta1": [0.0],
+                "softmax-temp": [],
+                "weight-init": [0.0]
+            },
+            "lock-weight": False,
+            "enable-debug": False,
+            "seed": 1
+        },
+        "environment-settings": {
+            "seed": 1
+        },
+        "experiment-settings": {
+            "randomize_start_state_beforeLock": False,
+            "randomize_start_state_afterLock": False,
+            "steps": 0,
+            "episodes": 1000000,
+            "max-run-length-episodic": 15000,
+            "data-path": "data/hyperparam_v5/acrobot/online_learning/esarsa/step15k/cem_uniform_sample/param_{}",
+            "should-log-totals": True,
+            "debug-interval": 0
+        }
+    }
     range_dict = {
         "adaptive-alpha": [0, 0.1],
         "softmax-temp": [0.0001, 5]
     }
     path = "config/hyperparam_v5/acrobot/offline_learning/knn/learning/k3_laplace/timeout500/esarsa/step500_env/data_suboptimal/drop0/cem_uniform_sample/param_{}.json"
+    online_path = "config/hyperparam_v5/acrobot/online_learning/esarsa/step15k/cem_uniform_sample/param_{}.json"
     for seed in range(100):
-        write_json(template, seed, range_dict, path)
+        write_json(template, seed, range_dict, path, online_template=online_template, online_path=online_path)
 
 def puddle_world_500_subopt():
     template = {
@@ -299,11 +417,11 @@ def puddle_world_500_subopt():
             "rep-load-path": "data/hyperparam_v5/puddlerand/offline_learning/knn/env_training/step500/suboptimalfixed_eps0/rep_laplace"
         },
         "experiment-settings": {
-            "randomize_start_state_beforeLock": False,
-            "randomize_start_state_afterLock": False,
+            "randomize_start_state_beforeLock": True,
+            "randomize_start_state_afterLock": True,
             "steps": 0,
             "episodes": 1000000,
-            "max-run-length-episodic": 15000,
+            "max-run-length-episodic": 30000,
             "steps-in-episode": 500,
 
             "data-path": "data/hyperparam_v5/puddlerand/offline_learning/knn/learning/k3_laplace/timeout500/esarsa/step500_env/data_suboptimal/drop0/cem_rand_sample/param_{}",
@@ -315,16 +433,55 @@ def puddle_world_500_subopt():
             "debug-interval": 0
         }
     }
+    online_template = {
+        "agent-name": "esarsa",
+        "environment-name": "puddleworld",
+        "agent-settings": {
+            "gamma": 1.0,
+            "state-len": 2,
+            "env-name": "puddleworld",
+            "sweep": {
+                "tilings": [16],
+                "tiles": [8],
+                "is-stepsize-adaptive": [True],
+                "alpha": [0.0],
+                "lambda": [0.1],
+                "epsilon": [0.0],
+                "adaptive-alpha": [],
+                "beta1": [0.0],
+                "softmax-temp": [],
+                "weight-init": [0.0]
+            },
+            "lock-weight": False,
+            "enable-debug": False,
+            "seed": 1
+        },
+        "environment-settings": {
+            "seed": 1
+        },
+        "experiment-settings": {
+            "randomize_start_state_beforeLock": True,
+            "randomize_start_state_afterLock": True,
+            "steps": 0,
+            "episodes": 1000000,
+            "max-run-length-episodic": 30000,
+            "data-path": "data/hyperparam_v5/puddlerand/online_learning/esarsa/step30k/cem_uniform_sample/param_{}",
+            "should-log-totals": True,
+            "should-log-returns": False,
+            "debug-interval": 0
+        }
+    }
     range_dict = {
         "adaptive-alpha": [0, 0.1],
         "softmax-temp": [0.001, 10]
     }
     path = "config/hyperparam_v5/puddlerand/offline_learning/knn/learning/k3_laplace/timeout500/esarsa/step500_env/data_suboptimal/drop0/cem_uniform_sample/param_{}.json"
+    online_path = "config/hyperparam_v5/puddlerand/online_learning/esarsa/step30k/cem_uniform_sample/param_{}.json"
     for seed in range(100):
-        write_json(template, seed, range_dict, path)
+        write_json(template, seed, range_dict, path, online_template=online_template, online_path=online_path)
 
 if __name__ == '__main__':
     acrobot_5k_opt()
     puddle_world_5k_opt()
-    # acrobot_500_subopt()
-    # puddle_world_500_subopt()
+    acrobot_500_subopt()
+    puddle_world_500_subopt()

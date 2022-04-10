@@ -45,8 +45,8 @@
         "seed": 1
     },
     "experiment-settings": {
-        "randomize_start_state_beforeLock": false,
-        "randomize_start_state_afterLock": false,
+        "randomize_start_state_beforeLock": true,
+        "randomize_start_state_afterLock": true,
         "steps": 0,
         "episodes": 1000000,
         "max-run-length-episodic": 30000,

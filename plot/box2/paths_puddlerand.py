@@ -4,11 +4,13 @@ pr_true = ["../../data/icml_data/puddlerand/online_learning/esarsa/step30k/sweep
 pr_knnlaplace_optim_5k = ["../../data/icml_data/puddlerand/offline_learning/knn/learning/k3_laplace/timeout1000/esarsa/step5k_env/data_optimal/drop0/sweep_rep1/"]
 pr_knnlaplace_suboptim_500 = ["../../data/hyperparam_v5/puddlerand/offline_learning/knn/learning/k3_laplace/timeout1000/esarsa/step500_env/data_suboptimal/drop0/sweep_rep1/"]
 
-pr_cem_uniform = ["../../data/hyperparam_v5/puddlerand/offline_learning/knn/learning/k3_laplace/timeout500/esarsa/step500_env/data_suboptimal/drop0/cem_rand_sample/param_{}"]
-pr_cem_uniform_best = ["../../data/hyperparam_v5/puddlerand/online_learning/esarsa/step30k/cem_uniform_baseline_best"]
+pr_cem_uniform = ["../../data/hyperparam_v5/puddlerand/offline_learning/knn/learning/k3_laplace/timeout500/esarsa/step500_env/data_suboptimal/drop0/cem_rand_sample"]
+# pr_cem_uniform_best = ["../../data/hyperparam_v5/puddlerand/online_learning/esarsa/step30k/cem_uniform_baseline_best"]
+pr_cem_uniform_online = ["../../data/hyperparam_v5/puddlerand/online_learning/esarsa/step30k/cem_uniform_sample"]
 
-pr_gridsearch_uniform = ["../../data/hyperparam_v5/puddlerand/offline_learning/knn/learning/k3_laplace/timeout1000/esarsa/step5k_env/data_optimal/drop0/gridsearch_uniform_sample/param_{}"]
-pr_gridsearch_uniform_best = ["../../data/hyperparam_v5/puddlerand/online_learning/esarsa/step30k/gridsearch_uniform_baseline_best"]
+pr_gridsearch_uniform = ["../../data/hyperparam_v5/puddlerand/offline_learning/knn/learning/k3_laplace/timeout1000/esarsa/step5k_env/data_optimal/drop0/gridsearch_uniform_sample"]
+# pr_gridsearch_uniform_best = ["../../data/hyperparam_v5/puddlerand/online_learning/esarsa/step30k/gridsearch_uniform_baseline_best"]
+pr_gridsearch_uniform_online = ["../../data/hyperparam_v5/puddlerand/online_learning/esarsa/step30k/gridsearch_uniform_sample"]
 
 pr_cemlaplace = ["../../data/hyperparam_v5/puddlerand/online_learning/esarsa/step30k/CEMOnlineLearningListSweep_100iters"]
 # pr_cemlaplace = ["../../data/icml_data/puddlerand/online_learning/esarsa/step30k/CEMOnlineLearningListSweep_30iters"]

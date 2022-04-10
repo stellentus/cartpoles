@@ -139,6 +139,8 @@ c_dict = {
 
     "Sanity Check lock weight": c_default_Adam[1],
     "Sanity Check lr=0": c_default[0],
+
+    "RS": "#16a085"
 }
 m_default = [".", "^", "+", "*", "s", "D", "h", "H", "."]
 m_dict = {
@@ -284,7 +286,7 @@ def plot_generation(te, cms, ranges, source, title, ylim=None, yscale="linear", 
 def plot_compare_top(te, cms, fqi, rand_lst, source, title,
                      cem=None, load_perf=None,
                      ylim=[], ylim2=[], yscale="linear", res_scale=1, outer=None, sparse_reward=None, max_len=np.inf, discount=1,
-                     ylabel="", right_ax=[], label_ncol=10, plot="box", true_perf_label=True):
+                     ylabel="", right_ax=[], label_ncol=10, plot="box", true_perf_label=True, flip=False):
     ranges = [0]
     # true env data dictionary
     te_data = loading_average(te, source, outer=outer, sparse_reward=sparse_reward, max_len=max_len)
@@ -403,7 +405,7 @@ def plot_compare_top(te, cms, fqi, rand_lst, source, title,
         filtered[k] = bsl[k]
 
     if plot == "box":
-        plot_boxs(filtered, te_thrd, ranges, title, ylim=ylim, ylim2=ylim2, yscale=yscale, res_scale=res_scale, ylabel=ylabel, right_ax=right_ax, label_ncol=label_ncol)
+        plot_boxs(filtered, te_thrd, ranges, title, ylim=ylim, ylim2=ylim2, yscale=yscale, res_scale=res_scale, ylabel=ylabel, right_ax=right_ax, label_ncol=label_ncol, flip=flip)
         # plot_violins(filtered, te_thrd, ranges, title, ylim=ylim, yscale=yscale, res_scale=res_scale)
     elif plot == "bar":
         plot_bars(filtered, te_thrd, ranges, title, ylim=ylim, yscale=yscale, res_scale=res_scale, ylabel=ylabel, right_ax=right_ax, label_ncol=label_ncol,
@@ -492,7 +494,7 @@ def plot_bars(filtered, thrd, xlabel, title, ylim=[], yscale='linear', res_scale
     ax.set_xticks([])
     # ax.set_xticklabels(all_models, rotation=45, ha="right")
     if ylim != [] and yscale != "log":
-        ax.set_ylim(ylim[0])
+        ax.set_ylim(ylim)
 
     ax.set_xlim([min_x-space, max_x+space])
     if len(thrd) > 0 and true_perf_label:
@@ -524,7 +526,7 @@ input:
         }
     thrd: [10 percentile threshold, 20 percentile threshold, 30 percentile threshold]
 """
-def plot_boxs(filtered, thrd, xlabel, title, ylim=[], ylim2=[], yscale='linear', res_scale=1, ylabel="", right_ax=[], label_ncol=10, thrd_color_same=True):
+def plot_boxs(filtered, thrd, xlabel, title, ylim=[], ylim2=[], yscale='linear', res_scale=1, ylabel="", right_ax=[], label_ncol=10, thrd_color_same=True, flip=False):
 
     all_models = list(filtered.keys())
     temp1 = []
@@ -601,7 +603,6 @@ def plot_boxs(filtered, thrd, xlabel, title, ylim=[], ylim2=[], yscale='linear',
     rhs_axs.set_xlim([min_x-space, max_x+space])
 
     if ylim != [] and yscale != "log":
-        # ax.set_ylim(ylim[0])
         ax.set_ylim(ylim)
     if ylim2 != [] and yscale != "log":
         rhs_axs.set_ylim(ylim2)
@@ -609,16 +610,18 @@ def plot_boxs(filtered, thrd, xlabel, title, ylim=[], ylim2=[], yscale='linear',
         rhs_axs.set_visible(False)
     elif vertline and len(thrd)>0:
         align_yaxis(ax, thrd[0] * res_scale, rhs_axs, thrd[0] * res_scale)
+
     ax.set_yscale(yscale)
     rhs_axs.set_yscale(yscale)
     ymin, ymax = ax.get_ylim()
+
     if yscale!="log":
         ytcs = []
         ytcs.append(ymin)
         step = (ymax - ymin) / 3
         for i in range(len(thrd)):
             ytcs.append(thrd[i] * res_scale)
-        for j in np.arange(ymin+step, ymax+step, step):
+        for j in np.arange(ymin+step, ymax+0.5*step, step):
             if len(thrd) == 0 or np.abs(j - thrd[0] * res_scale) > (ymax-ymin)*0.05:
                 ytcs.append(j)
 
@@ -632,7 +635,6 @@ def plot_boxs(filtered, thrd, xlabel, title, ylim=[], ylim2=[], yscale='linear',
         ax.set_ylim(ylim[0], ymax)
         ax.set_yticks(ytcs)
         ax.set_yticklabels(ytcs)
-
     if len(thrd) > 0:
 
         #     true_perf_pos = thrd[0] * res_scale
@@ -661,6 +663,7 @@ def plot_boxs(filtered, thrd, xlabel, title, ylim=[], ylim2=[], yscale='linear',
         for j in np.arange(ymin+step, ymax, step):
             if len(thrd) == 0 or np.abs(j - thrd[0] * res_scale) > (ymax-ymin)*0.05:
                 ytcs.append(j)
+        rhs_axs.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
         rhs_axs.set_yticks(ytcs)
         # rhs_axs.set_yticklabels(ytcs)
     else:
@@ -670,6 +673,13 @@ def plot_boxs(filtered, thrd, xlabel, title, ylim=[], ylim2=[], yscale='linear',
     ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
     plt.setp(ax.get_yticklabels(), fontsize=15)
     plt.setp(rhs_axs.get_yticklabels(), fontsize=15, color="red")
+
+    ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+    if yscale == "log" and flip:
+        ytickslocs = ax.get_yticks()
+        ax.set_yticks(ytickslocs)
+        ax.set_yticklabels(["{:.1f}".format(-1*l) for l in ytickslocs])
+        ax.invert_yaxis()
 
     # plt.legend()
     plt.tight_layout()

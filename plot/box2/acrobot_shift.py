@@ -160,7 +160,7 @@ def flip_top_param_piinit():
     fqi = {"FQI": acflip_fqi_tc}
     true = {"true": acflip_true_pi}
     plot_compare_top(true, calibration, fqi, random, "totals", "../img/acflip_15k_piinit",
-                     outer=30, res_scale=-1, yscale="linear", ylim=[], ylabel="Step per episode",
+                     outer=30, res_scale=1, yscale="linear", ylim=[], ylabel="Step per episode",
                      # right_ax=["Random", "FQI", "Shift Esarsa transfer (calibration)"],
                      label_ncol=2, true_perf_label=False)
 
@@ -172,6 +172,6 @@ if __name__ == '__main__':
     # flip_top_param()
     # shift_top_param()
     # default_top_param()
-    flip_top_param_piinit()
+    # flip_top_param_piinit()
     # shift_top_param_piinit()
     # default_top_param_piinit()

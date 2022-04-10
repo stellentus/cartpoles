@@ -1,6 +1,6 @@
 {
     "agent-name": "esarsa",
-    "environment-name": "knnModel",
+    "environment-name": "acrobot",
     "agent-settings": {
         "gamma": 1.0,
         "state-len": 6,
@@ -39,34 +39,10 @@
         },
         "lock-weight": false,
         "enable-debug": false,
-        "seed": 1,
-        "total-logs": 30
+        "seed": 1
     },
     "environment-settings": {
-        "seed": 1,
-        "total-logs": 30,
-        "neighbor-num": 3,
-        "datalog": "data/hyperparam_v5/acrobot/offline_data/random_restarts/esarsa/step5k/optimalfixed_eps0/param_0/",
-        "true-start-log": "data/hyperparam_v5/acrobot/offline_data/true_restarts/esarsa/step5k/optimalfixed_eps0/param_0/",
-        "ensemble-seed": 0,
-        "drop-percent": 0,
-        "pick-start-state": "random-init",
-        "rep-train-num-step": 30000,
-        "rep-train-beta": 5,
-        "rep-train-delta": 0.5,
-        "rep-train-lambda": 0.8,
-        "rep-train-traj-len": 20,
-        "rep-train-batch": 128,
-        "rep-train-learning-rate": 3e-05,
-        "rep-hidden": [
-            128,
-            128
-        ],
-        "rep-dim": 8,
-        "rep-name": "Laplace",
-        "rep-save": false,
-        "rep-load": true,
-        "rep-load-path": "data/hyperparam_v5/acrobot/offline_learning/knn/env_training/step5k/optimalfixed_eps0/rep_laplace"
+        "seed": 1
     },
     "experiment-settings": {
         "randomize_start_state_beforeLock": false,
@@ -74,13 +50,8 @@
         "steps": 0,
         "episodes": 1000000,
         "max-run-length-episodic": 15000,
-        "steps-in-episode": 500,
-        "data-path": "data/hyperparam_v5/acrobot/offline_learning/knn/learning/k3_laplace/timeout500/esarsa/step5k_env/data_optimal/drop0/gridsearch_uniform_sample/param_18",
-        "should-log-traces": false,
-        "should-log-episode-lengths": false,
-        "should-log-rewards": false,
+        "data-path": "data/hyperparam_v5/acrobot/online_learning/esarsa/step15k/gridsearch_uniform_sample/param_18/",
         "should-log-totals": true,
-        "should-log-returns": false,
         "debug-interval": 0
     }
 }

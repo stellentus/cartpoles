@@ -4,11 +4,14 @@ ac_true = ["../../data/icml_data/acrobot/online_learning/esarsa/step15k/sweep/"]
 ac_knnlaplace_optim_5k = ["../../data/icml_data/acrobot/offline_learning/knn/learning/k3_laplace/timeout500/esarsa/step5k_env/data_optimal/drop0/sweep_rep1/"]
 ac_knnlaplace_suboptim_500 = ["../../data/icml_data/acrobot/offline_learning/knn/learning/k3_laplace/timeout500/esarsa/step500_env/data_suboptimal/drop0/sweep_rep1/"]
 
-ac_cem_uniform = ["../../data/hyperparam_v5/acrobot/offline_learning/knn/learning/k3_laplace/timeout500/esarsa/step500_env/data_suboptimal/drop0/cem_rand_sample/param_{}"]
-ac_cem_uniform_best = ["../../data/hyperparam_v5/acrobot/online_learning/esarsa/step15k/cem_uniform_baseline_best"]
+ac_cem_uniform = ["../../data/hyperparam_v5/acrobot/offline_learning/knn/learning/k3_laplace/timeout500/esarsa/step500_env/data_suboptimal/drop0/cem_rand_sample"]
+ac_cem_uniform_online = ["../../data/hyperparam_v5/acrobot/online_learning/esarsa/step15k/cem_uniform_sample"]
+# ac_cem_uniform_best = ["../../data/hyperparam_v5/acrobot/online_learning/esarsa/step15k/cem_uniform_baseline_best"]
 
-ac_gridsearch_uniform = ["../../data/hyperparam_v5/acrobot/offline_learning/knn/learning/k3_laplace/timeout500/esarsa/step5k_env/data_optimal/drop0/gridsearch_uniform_sample/param_{}"]
-ac_gridsearch_uniform_best = ["../../data/hyperparam_v5/acrobot/online_learning/esarsa/step15k/gridsearch_uniform_baseline_best"]
+# ac_gridsearch_uniform = ["../../data/hyperparam_v5/acrobot/offline_learning/knn/learning/k3_laplace/timeout500/esarsa/step5k_env/data_optimal/drop0/gridsearch_uniform_sample/param_{}"]
+ac_gridsearch_uniform = ["../../data/hyperparam_v5/acrobot/offline_learning/knn/learning/k3_laplace/timeout500/esarsa/step5k_env/data_optimal/drop0/gridsearch_uniform_sample"]
+# ac_gridsearch_uniform_best = ["../../data/hyperparam_v5/acrobot/online_learning/esarsa/step15k/gridsearch_uniform_baseline_best"]
+ac_gridsearch_uniform_online = ["../../data/hyperparam_v5/acrobot/online_learning/esarsa/step15k/gridsearch_uniform_sample"]
 
 ac_cemlaplace = ["../../data/icml_data/acrobot/online_learning/esarsa/step15k/CEMOnlineLearningListSweep_100iters"]
 
