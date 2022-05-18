@@ -108,7 +108,7 @@ if __name__ == '__main__':
 
     optimizer.maximize(
         init_points=5,
-        n_iter=100,
+        n_iter=200,
     )
     print(optimizer.max)
     with open(fname+"_max.txt", "w") as f:
