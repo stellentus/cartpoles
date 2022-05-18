@@ -22,7 +22,7 @@ import (
 	"github.com/stellentus/cartpoles/lib/util/optimizer"
 )
 
-type fqiLinearSettings struct {
+type cqlLinearSettings struct {
 	Seed        int64
 	EnableDebug bool `json:"enable-debug"`
 
@@ -36,22 +36,22 @@ type fqiLinearSettings struct {
 	MinEpsilon          float64 `json:"min-epsilon"`
 	DecreasingEpsilon   string  `json:"decreasing-epsilon"`
 
-	NumDataset int64   `json:"fqi-numDataset"`
-	Hidden     []int   `json:"fqi-hidden"`
+	NumDataset int64   `json:"cql-numDataset"`
+	Hidden     []int   `json:"cql-hidden"`
 	Alpha      float64 `json:"alpha"`
-	Sync       int     `json:"fqi-sync"`
-	Decay      float64 `json:"fqi-decay"`
-	Momentum   float64 `json:"fqi-momentum"`
-	AdamBeta1  float64 `json:"fqi-adamBeta1"`
-	AdamBeta2  float64 `json:"fqi-adamBeta2"`
-	AdamEps    float64 `json:"fqi-adamEps"`
-	L2Lambda   float64 `json:"fqi-l2Lambda"`
+	Sync       int     `json:"cql-sync"`
+	Decay      float64 `json:"cql-decay"`
+	Momentum   float64 `json:"cql-momentum"`
+	AdamBeta1  float64 `json:"cql-adamBeta1"`
+	AdamBeta2  float64 `json:"cql-adamBeta2"`
+	AdamEps    float64 `json:"cql-adamEps"`
+	L2Lambda   float64 `json:"cql-l2Lambda"`
 
 	Bsize int    `json:"buffer-size"`
 	Btype string `json:"buffer-type"`
 
 	StateDim   int  `json:"state-len"`
-	BatchSize  int  `json:"fqi-batch"`
+	BatchSize  int  `json:"cql-batch"`
 	IncreaseBS bool `json:"increasing-batch"`
 
 	// StateRange []float64 `json:"StateRange"`
@@ -64,7 +64,7 @@ type fqiLinearSettings struct {
 	OnlineLearning  bool   `json:"online-learn"`  // Set to false for offline learning, either true/false for running online.
 }
 
-type FqiLinear struct {
+type CqlLinear struct {
 	logger.Debug
 	rng                *rand.Rand
 	tiler              util.MultiTiler
@@ -73,7 +73,7 @@ type FqiLinear struct {
 	lastState          rlglue.State
 	lastTileCodedState rlglue.State
 
-	fqiLinearSettings
+	cqlLinearSettings
 
 	updateNum int
 	learning  bool
@@ -93,14 +93,14 @@ type FqiLinear struct {
 }
 
 func init() {
-	Add("fqilinear", NewFqiLinear)
+	Add("cqllinear", NewCqlLinear)
 }
 
-func NewFqiLinear(logger logger.Debug) (rlglue.Agent, error) {
-	return &FqiLinear{Debug: logger}, nil
+func NewCqlLinear(logger logger.Debug) (rlglue.Agent, error) {
+	return &CqlLinear{Debug: logger}, nil
 }
 
-func (agent *FqiLinear) InitLockWeight(lw lockweight.LockWeight) lockweight.LockWeight {
+func (agent *CqlLinear) InitLockWeight(lw lockweight.LockWeight) lockweight.LockWeight {
 	lw.DecCount = 0
 	lw.BestAvg = math.Inf(-1)
 
@@ -116,15 +116,15 @@ func (agent *FqiLinear) InitLockWeight(lw lockweight.LockWeight) lockweight.Lock
 	return lw
 }
 
-func (agent *FqiLinear) Initialize(run uint, expAttr, envAttr rlglue.Attributes) error {
-	err := json.Unmarshal(expAttr, &agent.fqiLinearSettings)
+func (agent *CqlLinear) Initialize(run uint, expAttr, envAttr rlglue.Attributes) error {
+	err := json.Unmarshal(expAttr, &agent.cqlLinearSettings)
 	if err != nil {
-		return errors.New("FQILinear agent attributes were not valid: " + err.Error())
+		return errors.New("CQLLinear agent attributes were not valid: " + err.Error())
 	}
 
 	err = json.Unmarshal(expAttr, &agent.lw)
 	if err != nil {
-		return errors.New("FQILinear agent LockWeight attributes were not valid: " + err.Error())
+		return errors.New("CQLLinear agent LockWeight attributes were not valid: " + err.Error())
 	}
 	agent.lw = agent.InitLockWeight(agent.lw)
 
@@ -151,11 +151,11 @@ func (agent *FqiLinear) Initialize(run uint, expAttr, envAttr rlglue.Attributes)
 	}
 
 	if agent.EnableDebug {
-		agent.Message("msg", "agent.FqiLinear Initialize", "seed", agent.Seed, "numberOfActions", agent.NumberOfActions)
+		agent.Message("msg", "agent.CqlLinear Initialize", "seed", agent.Seed, "numberOfActions", agent.NumberOfActions)
 	}
 	agent.bf = buffer.NewBuffer()
 	agent.bf.Initialize(agent.Btype, agent.Bsize, agent.tilerNumIndices, agent.Seed+int64(run))
-	if agent.fqiLinearSettings.OfflineLearning {
+	if agent.cqlLinearSettings.OfflineLearning {
 		agent.bfValid = buffer.NewBuffer()
 		agent.bfValid.Initialize(agent.Btype, agent.Bsize, agent.tilerNumIndices, (agent.Seed+1)%agent.NumDataset+int64(run))
 	}
@@ -202,19 +202,19 @@ func (agent *FqiLinear) Initialize(run uint, expAttr, envAttr rlglue.Attributes)
 	return nil
 }
 
-func (agent *FqiLinear) InitTiler() error {
+func (agent *CqlLinear) InitTiler() error {
 	// scales the input observations for tile-coding
 	var err error
-	if agent.fqiLinearSettings.EnvName == "cartpole" {
-		agent.fqiLinearSettings.NumberOfActions = 2
+	if agent.cqlLinearSettings.EnvName == "cartpole" {
+		agent.cqlLinearSettings.NumberOfActions = 2
 		scalers := []util.Scaler{
-			util.NewScaler(-maxPosition, maxPosition, agent.fqiLinearSettings.NumTiles),
-			util.NewScaler(-maxVelocity, maxVelocity, agent.fqiLinearSettings.NumTiles),
-			util.NewScaler(-maxAngle, maxAngle, agent.fqiLinearSettings.NumTiles),
-			util.NewScaler(-maxAngularVelocity, maxAngularVelocity, agent.fqiLinearSettings.NumTiles),
+			util.NewScaler(-maxPosition, maxPosition, agent.cqlLinearSettings.NumTiles),
+			util.NewScaler(-maxVelocity, maxVelocity, agent.cqlLinearSettings.NumTiles),
+			util.NewScaler(-maxAngle, maxAngle, agent.cqlLinearSettings.NumTiles),
+			util.NewScaler(-maxAngularVelocity, maxAngularVelocity, agent.cqlLinearSettings.NumTiles),
 		}
 
-		agent.tiler, err = util.NewMultiTiler(4, agent.fqiLinearSettings.NumTilings, scalers)
+		agent.tiler, err = util.NewMultiTiler(4, agent.cqlLinearSettings.NumTilings, scalers)
 		if err != nil {
 			return err
 		}
@@ -233,18 +233,18 @@ func (agent *FqiLinear) InitTiler() error {
 		agent.stateRange[3][0] = -maxAngularVelocity
 		agent.stateRange[3][1] = maxAngularVelocity
 
-	} else if agent.fqiLinearSettings.EnvName == "acrobot" {
-		agent.fqiLinearSettings.NumberOfActions = 2 //3
+	} else if agent.cqlLinearSettings.EnvName == "acrobot" {
+		agent.cqlLinearSettings.NumberOfActions = 2 //3
 		scalers := []util.Scaler{
-			util.NewScaler(-maxFeature1, maxFeature1, agent.fqiLinearSettings.NumTiles),
-			util.NewScaler(-maxFeature2, maxFeature2, agent.fqiLinearSettings.NumTiles),
-			util.NewScaler(-maxFeature3, maxFeature3, agent.fqiLinearSettings.NumTiles),
-			util.NewScaler(-maxFeature4, maxFeature4, agent.fqiLinearSettings.NumTiles),
-			util.NewScaler(-maxFeature5, maxFeature5, agent.fqiLinearSettings.NumTiles),
-			util.NewScaler(-maxFeature6, maxFeature6, agent.fqiLinearSettings.NumTiles),
+			util.NewScaler(-maxFeature1, maxFeature1, agent.cqlLinearSettings.NumTiles),
+			util.NewScaler(-maxFeature2, maxFeature2, agent.cqlLinearSettings.NumTiles),
+			util.NewScaler(-maxFeature3, maxFeature3, agent.cqlLinearSettings.NumTiles),
+			util.NewScaler(-maxFeature4, maxFeature4, agent.cqlLinearSettings.NumTiles),
+			util.NewScaler(-maxFeature5, maxFeature5, agent.cqlLinearSettings.NumTiles),
+			util.NewScaler(-maxFeature6, maxFeature6, agent.cqlLinearSettings.NumTiles),
 		}
 
-		agent.tiler, err = util.NewMultiTiler(6, agent.fqiLinearSettings.NumTilings, scalers)
+		agent.tiler, err = util.NewMultiTiler(6, agent.cqlLinearSettings.NumTilings, scalers)
 		if err != nil {
 			return err
 		}
@@ -269,14 +269,14 @@ func (agent *FqiLinear) InitTiler() error {
 		agent.stateRange[5][0] = -maxFeature6
 		agent.stateRange[5][1] = maxFeature6
 
-	} else if agent.fqiLinearSettings.EnvName == "puddleworld" {
-		agent.fqiLinearSettings.NumberOfActions = 4 // 5
+	} else if agent.cqlLinearSettings.EnvName == "puddleworld" {
+		agent.cqlLinearSettings.NumberOfActions = 4 // 5
 		scalers := []util.Scaler{
-			util.NewScaler(minFeature1, maxFeature1, agent.fqiLinearSettings.NumTiles),
-			util.NewScaler(minFeature2, maxFeature2, agent.fqiLinearSettings.NumTiles),
+			util.NewScaler(minFeature1, maxFeature1, agent.cqlLinearSettings.NumTiles),
+			util.NewScaler(minFeature2, maxFeature2, agent.cqlLinearSettings.NumTiles),
 		}
 
-		agent.tiler, err = util.NewMultiTiler(2, agent.fqiLinearSettings.NumTilings, scalers)
+		agent.tiler, err = util.NewMultiTiler(2, agent.cqlLinearSettings.NumTilings, scalers)
 		if err != nil {
 			return err
 		}
@@ -289,14 +289,14 @@ func (agent *FqiLinear) InitTiler() error {
 		agent.stateRange[1][0] = minFeature2
 		agent.stateRange[1][1] = maxFeature2
 
-	} else if agent.fqiLinearSettings.EnvName == "gridworld" {
-		agent.fqiLinearSettings.NumberOfActions = 4 // 5
+	} else if agent.cqlLinearSettings.EnvName == "gridworld" {
+		agent.cqlLinearSettings.NumberOfActions = 4 // 5
 		scalers := []util.Scaler{
-			util.NewScaler(minCoord, maxCoord, agent.fqiLinearSettings.NumTiles),
-			util.NewScaler(minCoord, maxCoord, agent.fqiLinearSettings.NumTiles),
+			util.NewScaler(minCoord, maxCoord, agent.cqlLinearSettings.NumTiles),
+			util.NewScaler(minCoord, maxCoord, agent.cqlLinearSettings.NumTiles),
 		}
 
-		agent.tiler, err = util.NewMultiTiler(2, agent.fqiLinearSettings.NumTilings, scalers)
+		agent.tiler, err = util.NewMultiTiler(2, agent.cqlLinearSettings.NumTilings, scalers)
 		if err != nil {
 			return err
 		}
@@ -316,12 +316,11 @@ func (agent *FqiLinear) InitTiler() error {
 	agent.FillHashTable()
 
 	agent.tilerNumIndices = agent.tiler.NumberOfIndices()
-	fmt.Println(agent.tilerNumIndices)
 
 	return nil
 }
 
-func (agent *FqiLinear) FillHashTable() {
+func (agent *CqlLinear) FillHashTable() {
 	//var fixedCoord []float64
 	//fmt.Println(agent.generateAllPoints(fixedCoord, 0, 0))
 
@@ -329,7 +328,7 @@ func (agent *FqiLinear) FillHashTable() {
 	agent.generateAllPoints()
 }
 
-func (agent *FqiLinear) generateAllPoints() int {
+func (agent *CqlLinear) generateAllPoints() int {
 	tempS := make([]float64, agent.StateDim)
 	count := 0
 	for dim := 0; dim < agent.StateDim; dim++ {
@@ -375,9 +374,8 @@ func (agent *FqiLinear) generateAllPoints() int {
 }
 
 // Start provides an initial observation to the agent and returns the agent's action.
-//func (agent *FqiLinear) Start(state rlglue.State) rlglue.Action {
-func (agent *FqiLinear) Start(oristate rlglue.State) rlglue.Action {
-	if agent.fqiLinearSettings.OfflineLearning {
+func (agent *CqlLinear) Start(oristate rlglue.State) rlglue.Action {
+	if agent.cqlLinearSettings.OfflineLearning {
 		return rlglue.Action(0)
 	}
 
@@ -395,9 +393,9 @@ func (agent *FqiLinear) Start(oristate rlglue.State) rlglue.Action {
 }
 
 // Step provides a new observation and a reward to the agent and returns the agent's next action.
-//func (agent *FqiLinear) Step(state rlglue.State, reward float64) rlglue.Action {
-func (agent *FqiLinear) Step(oristate rlglue.State, reward float64) rlglue.Action {
-	if agent.fqiLinearSettings.OfflineLearning {
+//func (agent *CqlLinear) Step(state rlglue.State, reward float64) rlglue.Action {
+func (agent *CqlLinear) Step(oristate rlglue.State, reward float64) rlglue.Action {
+	if agent.cqlLinearSettings.OfflineLearning {
 		agent.Update()
 		return rlglue.Action(0)
 	}
@@ -413,7 +411,6 @@ func (agent *FqiLinear) Step(oristate rlglue.State, reward float64) rlglue.Actio
 	copy(state, oristate)
 
 	tileCodedState := agent.tileEncodeState(oristate)
-
 	// state = agent.nml.MeanZeroNormalization(state)
 	agent.bf.Feed(agent.lastTileCodedState, agent.lastAction, tileCodedState, reward, agent.Gamma)
 	//agent.stepNum = agent.stepNum + 1
@@ -434,8 +431,8 @@ func (agent *FqiLinear) Step(oristate rlglue.State, reward float64) rlglue.Actio
 }
 
 // End informs the agent that a terminal state has been reached, providing the final reward.
-func (agent *FqiLinear) End(state rlglue.State, reward float64) {
-	if agent.fqiLinearSettings.OfflineLearning {
+func (agent *CqlLinear) End(state rlglue.State, reward float64) {
+	if agent.cqlLinearSettings.OfflineLearning {
 		agent.Update()
 	}
 	tileCodedState := agent.tileEncodeState(state)
@@ -446,13 +443,13 @@ func (agent *FqiLinear) End(state rlglue.State, reward float64) {
 	}
 }
 
-func (agent *FqiLinear) Update() {
+func (agent *CqlLinear) Update() {
 	// Deployed online without updating weights.
-	if !agent.fqiLinearSettings.OfflineLearning && !agent.fqiLinearSettings.OnlineLearning {
+	if !agent.cqlLinearSettings.OfflineLearning && !agent.cqlLinearSettings.OnlineLearning {
 		return
 	}
 
-	if !agent.fqiLinearSettings.OfflineLearning && agent.lw.UseLock {
+	if !agent.cqlLinearSettings.OfflineLearning && agent.lw.UseLock {
 		//if agent.updateNum%agent.Bsize == 0 {
 		//	agent.lock = agent.lw.CheckChange()
 		//}
@@ -482,13 +479,11 @@ func (agent *FqiLinear) Update() {
 		////fmt.Println("sync", agent.updateNum)
 		agent.targetNet = network.Synchronization(agent.learningNet, agent.targetNet)
 	}
-
 	lastTileCodedStates, lastActionsFloat, tileCodedStates, rewards, gammas := agent.bf.Sample(agent.BatchSize)
 	lastActions := ao.Flatten2DInt(ao.A64ToInt2D(lastActionsFloat))
 
 	// lastStatesTileCoded := agent.tileEncodeStates(lastStates)
 	// statesTileCoded := agent.tileEncodeStates(states)
-
 	// NN: Weight update
 	lastQ := agent.learningNet.Forward(lastTileCodedStates)
 	lastActionValue := ao.RowIndexFloat(lastQ, lastActions)
@@ -505,23 +500,33 @@ func (agent *FqiLinear) Update() {
 		}
 		loss[i][lastActions[i]] = lastActionValue[i] - rewards[i][0] - gammas[i][0]*targetActionValue[i]
 	}
-	// avgLoss := make([][]float64, 1)
-	// avgLoss[0] = make([]float64, agent.NumberOfActions)
-	// for j := 0; j < agent.NumberOfActions; j++ {
-	// 	sum := 0.0
-	// 	for i := 0; i < len(loss); i++ {
-	// 		sum += loss[i][j]
-	// 	}
-	// 	avgLoss[0][j] = sum / float64(len(loss))
-	// }
+	constr := make([]float64, len(lastQ))
+	for i := 0; i < len(lastQ); i++ {
+		constr[i] = ao.LogSumExp(lastQ[i]) - lastActionValue[i]
+	}
+	avgConstr := ao.Average(constr) - ao.Average(lastActionValue)
 
-	agent.learningNet.Backward(loss, agent.opt)
-	//agent.learningNet.Backward(avgLoss)
+	avgLossOne := make([][]float64, 1)
+	avgLossOne[0] = make([]float64, agent.NumberOfActions)
+	for j := 0; j < agent.NumberOfActions; j++ {
+		sum := 0.0
+		for i := 0; i < len(loss); i++ {
+			sum += loss[i][j]
+		}
+		avgLossOne[0][j] = sum / float64(len(loss)) * 0.5 + avgConstr
+	}
+	avgLoss := make([][]float64, len(loss))
+	for i := 0; i < len(avgLoss); i++ {
+		avgLoss[i] = avgLossOne[0]
+	}
+
+	//agent.learningNet.Backward(loss, agent.opt)
+	agent.learningNet.Backward(avgLoss, agent.opt)
 	agent.updateNum += 1
 }
 
 // Choose action
-func (agent *FqiLinear) Policy(tileCodedState rlglue.State) int {
+func (agent *CqlLinear) Policy(tileCodedState rlglue.State) int {
 	var idx int
 	if (agent.rng.Float64() < agent.Epsilon) || (!agent.learning) {
 		idx = agent.rng.Intn(agent.NumberOfActions)
@@ -538,7 +543,7 @@ func (agent *FqiLinear) Policy(tileCodedState rlglue.State) int {
 	return idx
 }
 
-func (agent *FqiLinear) tileEncodeStates(rawStates [][]float64) [][]float64 {
+func (agent *CqlLinear) tileEncodeStates(rawStates [][]float64) [][]float64 {
 	tileCodedStates := make([][]float64, len(rawStates))
 	for i := 0; i < len(rawStates); i++ {
 		tileCodedStates[i] = agent.tileEncodeState(rawStates[i])
@@ -546,10 +551,10 @@ func (agent *FqiLinear) tileEncodeStates(rawStates [][]float64) [][]float64 {
 	return tileCodedStates
 }
 
-func (agent *FqiLinear) tileEncodeState(rawState []float64) []float64 {
+func (agent *CqlLinear) tileEncodeState(rawState []float64) []float64 {
 	stateActiveFeatures, err := agent.tiler.Tile(rawState) // Indices of active features of the tile-coded state
 	if err != nil {
-		agent.Message("err", "agent.FQILinear is acting on garbage state because it couldn't create tiles: "+err.Error())
+		agent.Message("err", "agent.CQLLinear is acting on garbage state because it couldn't create tiles: "+err.Error())
 	}
 	state := make(rlglue.State, agent.tilerNumIndices)
 	for _, v := range stateActiveFeatures {
@@ -558,7 +563,7 @@ func (agent *FqiLinear) tileEncodeState(rawState []float64) []float64 {
 	return state
 }
 
-func (agent *FqiLinear) CheckAvgRwdLock(avg float64) bool {
+func (agent *CqlLinear) CheckAvgRwdLock(avg float64) bool {
 	if agent.lw.BestAvg > avg {
 		agent.lw.DecCount += 1
 		fmt.Println("Count to lock", agent.lw.DecCount)
@@ -576,7 +581,7 @@ func (agent *FqiLinear) CheckAvgRwdLock(avg float64) bool {
 	return lock
 }
 
-func (agent *FqiLinear) CheckAvgRwdUnlock(avg float64) bool {
+func (agent *CqlLinear) CheckAvgRwdUnlock(avg float64) bool {
 	if agent.lw.LockAvgRwd > avg {
 		agent.lw.DecCount += 1
 		fmt.Println("Count to unlock", agent.lw.DecCount)
@@ -593,8 +598,8 @@ func (agent *FqiLinear) CheckAvgRwdUnlock(avg float64) bool {
 	return lock
 }
 
-//func (agent *FqiLinear) CheckChange() bool {
-func (agent *FqiLinear) DynamicLock() bool {
+//func (agent *CqlLinear) CheckChange() bool {
+func (agent *CqlLinear) DynamicLock() bool {
 	_, _, _, rewards2D, _ := agent.bf.Content()
 	rewards := ao.Flatten2DFloat(rewards2D)
 	avg := ao.Average(rewards)
@@ -620,7 +625,7 @@ func (agent *FqiLinear) DynamicLock() bool {
 	}
 }
 
-func (agent *FqiLinear) OnetimeRwdLock() bool {
+func (agent *CqlLinear) OnetimeRwdLock() bool {
 	if agent.lock {
 		return true
 	} else {
@@ -637,7 +642,7 @@ func (agent *FqiLinear) OnetimeRwdLock() bool {
 	}
 }
 
-func (agent *FqiLinear) OnetimeEpLenLock() bool {
+func (agent *CqlLinear) OnetimeEpLenLock() bool {
 	if agent.lock {
 		return true
 	} else {
@@ -662,24 +667,24 @@ func (agent *FqiLinear) OnetimeEpLenLock() bool {
 	}
 }
 
-func (agent *FqiLinear) KeepLock() bool {
+func (agent *CqlLinear) KeepLock() bool {
 	return true
 }
 
-func (agent *FqiLinear) GetLock() bool {
+func (agent *CqlLinear) GetLock() bool {
 	return agent.lock
 }
 
 // Load datalog, copy dataset to replay buffer.
-func (agent *FqiLinear) loadDataLog(run int) error {
-	if !agent.fqiLinearSettings.OfflineLearning {
+func (agent *CqlLinear) loadDataLog(run int) error {
+	if !agent.cqlLinearSettings.OfflineLearning {
 		return nil
 	}
 	var allTrans [][]float64
 	var err error
 
 	// Load training set
-	folder := agent.fqiLinearSettings.DataLog
+	folder := agent.cqlLinearSettings.DataLog
 	traceLog := folder + "/traces-" + strconv.Itoa(int(run)) + ".csv"
 	fmt.Printf("Training set: %v\n", traceLog)
 	allTrans, err = agent.loadDatalogFile(traceLog)
@@ -690,20 +695,20 @@ func (agent *FqiLinear) loadDataLog(run int) error {
 	for i := 0; i < len(allTrans); i++ {
 		trans := allTrans[i]
 		gamma := float64(0)
-		terminal := trans[agent.fqiLinearSettings.StateDim*2+2]
+		terminal := trans[agent.cqlLinearSettings.StateDim*2+2]
 		if terminal == 0 {
 			gamma = agent.Gamma
 		}
 		agent.bf.Feed(
-			trans[:agent.fqiLinearSettings.StateDim],                                       // state
-			trans[agent.fqiLinearSettings.StateDim],                                        // action
-			trans[agent.fqiLinearSettings.StateDim+1:agent.fqiLinearSettings.StateDim*2+1], // next state
-			trans[agent.fqiLinearSettings.StateDim*2+1],                                    // reward
+			agent.tileEncodeState(trans[:agent.cqlLinearSettings.StateDim]),                                       // state
+			trans[agent.cqlLinearSettings.StateDim],                                        // action
+			agent.tileEncodeState(trans[agent.cqlLinearSettings.StateDim+1:agent.cqlLinearSettings.StateDim*2+1]), // next state
+			trans[agent.cqlLinearSettings.StateDim*2+1],                                    // reward
 			gamma, // gamma
 		)
 	}
 
-	if !agent.fqiLinearSettings.OfflineLearning {
+	if !agent.cqlLinearSettings.OfflineLearning {
 		return nil
 	}
 
@@ -719,15 +724,15 @@ func (agent *FqiLinear) loadDataLog(run int) error {
 	for i := 0; i < len(allTrans); i++ {
 		trans := allTrans[i]
 		gamma := float64(0)
-		terminal := trans[agent.fqiLinearSettings.StateDim*2+2]
+		terminal := trans[agent.cqlLinearSettings.StateDim*2+2]
 		if terminal == 0 {
 			gamma = agent.Gamma
 		}
 		agent.bfValid.Feed(
-			trans[:agent.fqiLinearSettings.StateDim],                                       // state
-			trans[agent.fqiLinearSettings.StateDim],                                        // action
-			trans[agent.fqiLinearSettings.StateDim+1:agent.fqiLinearSettings.StateDim*2+1], // next state
-			trans[agent.fqiLinearSettings.StateDim*2+1],                                    // reward
+			agent.tileEncodeState(trans[:agent.cqlLinearSettings.StateDim]),                                       // state
+			trans[agent.cqlLinearSettings.StateDim],                                        // action
+			agent.tileEncodeState(trans[agent.cqlLinearSettings.StateDim+1:agent.cqlLinearSettings.StateDim*2+1]), // next state
+			trans[agent.cqlLinearSettings.StateDim*2+1],                                    // reward
 			gamma, // gamma
 		)
 	}
@@ -735,7 +740,7 @@ func (agent *FqiLinear) loadDataLog(run int) error {
 	return nil
 }
 
-func (agent *FqiLinear) loadDatalogFile(tracePath string) ([][]float64, error) {
+func (agent *CqlLinear) loadDatalogFile(tracePath string) ([][]float64, error) {
 	// Get offline data
 	var allTransTemp [][]float64
 	csvFile, err := os.Open(tracePath)
@@ -747,28 +752,28 @@ func (agent *FqiLinear) loadDatalogFile(tracePath string) ([][]float64, error) {
 	if err != nil {
 		return allTransTemp, errors.New("Cannot read trace log file: " + err.Error())
 	}
-	if len(allTransStr) <= agent.fqiLinearSettings.BatchSize {
+	if len(allTransStr) <= agent.cqlLinearSettings.BatchSize {
 		return allTransTemp, errors.New("Not enough data to sample from: " + err.Error())
 	}
 	allTransTemp = make([][]float64, len(allTransStr)-1)
 	for i := 1; i < len(allTransStr); i++ { // remove first str (title of column)
 		trans := allTransStr[i]
-		row := make([]float64, agent.fqiLinearSettings.StateDim*2+3)
+		row := make([]float64, agent.cqlLinearSettings.StateDim*2+3)
 		for j, num := range trans {
 			if j == 0 { // next state
 				num = num[1 : len(num)-1] // remove square brackets
-				copy(row[agent.fqiLinearSettings.StateDim+1:agent.fqiLinearSettings.StateDim*2+1], convformat.ListStr2Float(num, " "))
+				copy(row[agent.cqlLinearSettings.StateDim+1:agent.cqlLinearSettings.StateDim*2+1], convformat.ListStr2Float(num, " "))
 			} else if j == 1 { // current state
 				num = num[1 : len(num)-1]
-				copy(row[:agent.fqiLinearSettings.StateDim], convformat.ListStr2Float(num, " "))
+				copy(row[:agent.cqlLinearSettings.StateDim], convformat.ListStr2Float(num, " "))
 			} else if j == 2 { // action
-				row[agent.fqiLinearSettings.StateDim], _ = strconv.ParseFloat(num, 64)
+				row[agent.cqlLinearSettings.StateDim], _ = strconv.ParseFloat(num, 64)
 			} else if j == 3 { //reward
-				row[agent.fqiLinearSettings.StateDim*2+1], _ = strconv.ParseFloat(num, 64)
-				if row[agent.fqiLinearSettings.StateDim*2+1] == -1 { // termination
-					row[agent.fqiLinearSettings.StateDim*2+2] = 1
+				row[agent.cqlLinearSettings.StateDim*2+1], _ = strconv.ParseFloat(num, 64)
+				if row[agent.cqlLinearSettings.StateDim*2+1] == -1 { // termination
+					row[agent.cqlLinearSettings.StateDim*2+2] = 1
 				} else {
-					row[agent.fqiLinearSettings.StateDim*2+2] = 0
+					row[agent.cqlLinearSettings.StateDim*2+2] = 0
 				}
 			}
 		}
@@ -779,58 +784,58 @@ func (agent *FqiLinear) loadDatalogFile(tracePath string) ([][]float64, error) {
 }
 
 // Load neural net for online evaluation/learning.
-func (agent *FqiLinear) loadWeights() error {
-	if agent.fqiLinearSettings.OfflineLearning {
+func (agent *CqlLinear) loadWeights() error {
+	if agent.cqlLinearSettings.OfflineLearning {
 		return nil
 	}
 
-	if agent.fqiLinearSettings.WeightPath == "" {
+	if agent.cqlLinearSettings.WeightPath == "" {
 		return nil
 	}
 
 	// load weights here, save weights after training (called somewhere in experiment.go)
 	err := agent.learningNet.LoadNetwork(
-		fmt.Sprintf("%slearning/", agent.fqiLinearSettings.WeightPath),
+		fmt.Sprintf("%slearning/", agent.cqlLinearSettings.WeightPath),
 		agent.tilerNumIndices, agent.Hidden, agent.NumberOfActions)
 	if err != nil {
-		return errors.New("FQILinear agent unable to load networks: " + err.Error())
+		return errors.New("CQLLinear agent unable to load networks: " + err.Error())
 	}
 
 	err = agent.targetNet.LoadNetwork(
-		fmt.Sprintf("%starget/", agent.fqiLinearSettings.WeightPath),
+		fmt.Sprintf("%starget/", agent.cqlLinearSettings.WeightPath),
 		agent.tilerNumIndices, agent.Hidden, agent.NumberOfActions)
 	if err != nil {
-		return errors.New("FQILinear agent unable to load networks: " + err.Error())
+		return errors.New("CQLLinear agent unable to load networks: " + err.Error())
 	}
 
 	return nil
 }
 
 // SaveWeights save neural net weights to speficied path.
-func (agent *FqiLinear) SaveWeights(basePath string) error {
-	if !agent.fqiLinearSettings.OfflineLearning {
+func (agent *CqlLinear) SaveWeights(basePath string) error {
+	if !agent.cqlLinearSettings.OfflineLearning {
 		return nil
 	}
 
-	err := agent.learningNet.SaveNetwork(path.Join(agent.fqiLinearSettings.WeightPath, basePath, "learning"))
+	err := agent.learningNet.SaveNetwork(path.Join(agent.cqlLinearSettings.WeightPath, basePath, "learning"))
 	if err != nil {
-		return errors.New("FQILinear agent unable to save networks: " + err.Error())
+		return errors.New("CQLLinear agent unable to save networks: " + err.Error())
 	}
 
-	err = agent.targetNet.SaveNetwork(path.Join(agent.fqiLinearSettings.WeightPath, basePath, "target"))
+	err = agent.targetNet.SaveNetwork(path.Join(agent.cqlLinearSettings.WeightPath, basePath, "target"))
 	if err != nil {
-		return errors.New("FQILinear agent unable to save networks: " + err.Error())
+		return errors.New("CQLLinear agent unable to save networks: " + err.Error())
 	}
 
 	return nil
 }
 
 // GetLearnProg computes mean squared TD error of a full pass over the whole dataset.
-func (agent *FqiLinear) GetLearnProg() string {
+func (agent *CqlLinear) GetLearnProg() string {
 	// MSTDE of training set
 	lastStates, lastActionsFloat, states, rewards, gammas := agent.bf.Content()
 	lastActions := ao.Flatten2DInt(ao.A64ToInt2D(lastActionsFloat))
-
+	//fmt.Println(lastStates)
 	lastQ := agent.learningNet.Predict(lastStates)
 	lastActionValue := ao.RowIndexFloat(lastQ, lastActions)
 	targetQ := agent.targetNet.Predict(states)
@@ -863,6 +868,6 @@ func (agent *FqiLinear) GetLearnProg() string {
 		strconv.FormatFloat(validLoss/float64(len(lastQ)), 'f', -1, 64))
 }
 
-func (agent *FqiLinear) PassInfo(info string, value float64) interface{} {
+func (agent *CqlLinear) PassInfo(info string, value float64) interface{} {
 	return nil
 }

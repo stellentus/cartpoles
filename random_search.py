@@ -4,9 +4,6 @@ import os
 import numpy as np
 import pandas as pd
 import copy
-from bayes_opt import BayesianOptimization
-from bayes_opt.logger import JSONLogger
-from bayes_opt.event import Events
 
 
 # def black_box_function(x, y):
@@ -29,8 +26,6 @@ class RunGoFunc:
 
     def write_json(self, template, seed, sweep_dict, path):
         config_dict = copy.deepcopy(template)
-        # config_dict["environment-settings"]["datalog"] = config_dict["environment-settings"]["datalog"].format(self.data_idx)
-        # config_dict["environment-settings"]["rep-load-path"] = config_dict["environment-settings"]["rep-load-path"].format(self.data_idx)
         for key, value in sweep_dict.items():
             config_dict["agent-settings"]["sweep"][key] = [value]
         config_dict["experiment-settings"]["data-path"] = config_dict["experiment-settings"]["data-path"].format(self.data_idx, seed)
@@ -54,32 +49,16 @@ class RunGoFunc:
                 all_perf.append(res)
         return np.array(all_perf).mean()
 
-    def single_setting(self, **hypers):
+    def single_setting(self, hypers):
         new_conf_file_c = os.path.join(self.path, "dataset_{}_param_{}.json".format(self.data_idx, self.counter))
         data_path = self.write_json(self.cfg_template, self.counter, hypers, new_conf_file_c)
         self.counter += 1
-        # for run in range(self.num_runs):
-        #     os.system('./main --config {} --run {}'.format(new_conf_file_c, run))
         os.system('parallel --jobs '+str(self.max_cpu)+' ./main --config '+new_conf_file_c+' --run {} ::: $(seq '+str(self.data_idx)+' '+str(self.outer)+' '+str(self.num_runs*self.outer-1)+')')
         perf = self.loading_perf(data_path, source="return", outer=self.outer)
         return perf
 
 
 if __name__ == '__main__':
-
-    # Bounded region of parameter space
-    # pbounds = {'x': (2, 4), 'y': (-3, 3)}
-    #
-    # optimizer = BayesianOptimization(
-    #     f=black_box_function,
-    #     pbounds=pbounds,
-    #     random_state=1,
-    # )
-    # optimizer.maximize(
-    #     init_points=2,
-    #     n_iter=3,
-    # )
-
 
     parser = argparse.ArgumentParser(description="run_file")
     parser.add_argument('--num-runs', default=5, type=int, help='number of runs')
@@ -96,22 +75,24 @@ if __name__ == '__main__':
         os.makedirs(cfg['config-path'])
     rgf = RunGoFunc(cfg, args.num_runs, args.log_idx, args.max_cpu)
 
-    optimizer = BayesianOptimization(
-        f=rgf.single_setting,
-        pbounds=pbounds,
-        random_state=args.log_idx,
-    )
+    rng = np.random.RandomState(args.log_idx)
+    fname = "randomsearch_env{}_dataset{}".format(cfg["agent-settings"]["env-name"], args.log_idx)
 
-    fname = "bayes_env{}_dataset{}".format(cfg["agent-settings"]["env-name"], args.log_idx)
-    logger = JSONLogger(path=fname+".json")
-    optimizer.subscribe(Events.OPTIMIZATION_STEP, logger)
+    best_perf = -1 * np.inf
+    best_hyper = None
+    for iter in range(100):
+        temp_setting = {}
+        for k, v in pbounds.items():
+            sample = rng.random() * (v[1] - v[0]) + v[0]
+            temp_setting[k] = sample
+        perf = rgf.single_setting(temp_setting)
+        if perf > best_perf:
+            best_hyper = copy.deepcopy(temp_setting)
+            best_perf = perf
 
-    optimizer.maximize(
-        init_points=5,
-        n_iter=200,
-    )
-    print(optimizer.max)
+    print(best_hyper)
     with open(fname+"_max.txt", "w") as f:
-        content = optimizer.max
-        for key, value in content.items():
-            f.write("{}:{}\n".format(key, value))
+        f.write("{")
+        for key, value in best_hyper.items():
+            f.write("'{}':{}, ".format(key, value))
+        f.write("}\n")

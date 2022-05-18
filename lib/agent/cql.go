@@ -22,7 +22,7 @@ import (
 	"github.com/stellentus/cartpoles/lib/util/optimizer"
 )
 
-type fqiSettings struct {
+type cqlSettings struct {
 	Seed        int64
 	EnableDebug bool `json:"enable-debug"`
 
@@ -33,22 +33,22 @@ type fqiSettings struct {
 	MinEpsilon          float64 `json:"min-epsilon"`
 	DecreasingEpsilon   string  `json:"decreasing-epsilon"`
 
-	NumDataset int64   `json:"fqi-numDataset"`
-	Hidden     []int   `json:"fqi-hidden"`
+	NumDataset int64   `json:"cql-numDataset"`
+	Hidden     []int   `json:"cql-hidden"`
 	Alpha      float64 `json:"alpha"`
-	Sync       int     `json:"fqi-sync"`
-	Decay      float64 `json:"fqi-decay"`
-	Momentum   float64 `json:"fqi-momentum"`
-	AdamBeta1  float64 `json:"fqi-adamBeta1"`
-	AdamBeta2  float64 `json:"fqi-adamBeta2"`
-	AdamEps    float64 `json:"fqi-adamEps"`
-	L2Lambda   float64 `json:"fqi-l2Lambda"`
+	Sync       int     `json:"cql-sync"`
+	Decay      float64 `json:"cql-decay"`
+	Momentum   float64 `json:"cql-momentum"`
+	AdamBeta1  float64 `json:"cql-adamBeta1"`
+	AdamBeta2  float64 `json:"cql-adamBeta2"`
+	AdamEps    float64 `json:"cql-adamEps"`
+	L2Lambda   float64 `json:"cql-l2Lambda"`
 
 	Bsize int    `json:"buffer-size"`
 	Btype string `json:"buffer-type"`
 
 	StateDim   int  `json:"state-len"`
-	BatchSize  int  `json:"fqi-batch"`
+	BatchSize  int  `json:"cql-batch"`
 	IncreaseBS bool `json:"increasing-batch"`
 
 	StateRange []float64 `json:"StateRange"`
@@ -61,13 +61,13 @@ type fqiSettings struct {
 	OnlineLearning  bool   `json:"online-learn"`  // Set to false for offline learning, either true/false for running online.
 }
 
-type Fqi struct {
+type Cql struct {
 	logger.Debug
 	rng        *rand.Rand
 	lastAction int
 	lastState  rlglue.State
 
-	fqiSettings
+	cqlSettings
 
 	updateNum int
 	learning  bool
@@ -86,14 +86,14 @@ type Fqi struct {
 }
 
 func init() {
-	Add("fqi", NewFqi)
+	Add("cql", NewCql)
 }
 
-func NewFqi(logger logger.Debug) (rlglue.Agent, error) {
-	return &Fqi{Debug: logger}, nil
+func NewCql(logger logger.Debug) (rlglue.Agent, error) {
+	return &Cql{Debug: logger}, nil
 }
 
-func (agent *Fqi) InitLockWeight(lw lockweight.LockWeight) lockweight.LockWeight {
+func (agent *Cql) InitLockWeight(lw lockweight.LockWeight) lockweight.LockWeight {
 	lw.DecCount = 0
 	lw.BestAvg = math.Inf(-1)
 
@@ -109,15 +109,15 @@ func (agent *Fqi) InitLockWeight(lw lockweight.LockWeight) lockweight.LockWeight
 	return lw
 }
 
-func (agent *Fqi) Initialize(run uint, expAttr, envAttr rlglue.Attributes) error {
-	err := json.Unmarshal(expAttr, &agent.fqiSettings)
+func (agent *Cql) Initialize(run uint, expAttr, envAttr rlglue.Attributes) error {
+	err := json.Unmarshal(expAttr, &agent.cqlSettings)
 	if err != nil {
-		return errors.New("FQI agent attributes were not valid: " + err.Error())
+		return errors.New("CQL agent attributes were not valid: " + err.Error())
 	}
 
 	err = json.Unmarshal(expAttr, &agent.lw)
 	if err != nil {
-		return errors.New("FQI agent LockWeight attributes were not valid: " + err.Error())
+		return errors.New("CQL agent LockWeight attributes were not valid: " + err.Error())
 	}
 	agent.lw = agent.InitLockWeight(agent.lw)
 
@@ -138,11 +138,11 @@ func (agent *Fqi) Initialize(run uint, expAttr, envAttr rlglue.Attributes) error
 	agent.rng = rand.New(rand.NewSource(agent.Seed + int64(run))) // Create a new rand source for reproducibility
 
 	if agent.EnableDebug {
-		agent.Message("msg", "agent.Fqi Initialize", "seed", agent.Seed, "numberOfActions", agent.NumberOfActions)
+		agent.Message("msg", "agent.Cql Initialize", "seed", agent.Seed, "numberOfActions", agent.NumberOfActions)
 	}
 	agent.bf = buffer.NewBuffer()
 	agent.bf.Initialize(agent.Btype, agent.Bsize, agent.StateDim, agent.Seed+int64(run))
-	if agent.fqiSettings.OfflineLearning {
+	if agent.cqlSettings.OfflineLearning {
 		agent.bfValid = buffer.NewBuffer()
 		agent.bfValid.Initialize(agent.Btype, agent.Bsize, agent.StateDim, (agent.Seed+1)%agent.NumDataset+int64(run))
 	}
@@ -184,9 +184,9 @@ func (agent *Fqi) Initialize(run uint, expAttr, envAttr rlglue.Attributes) error
 }
 
 // Start provides an initial observation to the agent and returns the agent's action.
-//func (agent *Fqi) Start(state rlglue.State) rlglue.Action {
-func (agent *Fqi) Start(oristate rlglue.State) rlglue.Action {
-	if agent.fqiSettings.OfflineLearning {
+//func (agent *Cql) Start(state rlglue.State) rlglue.Action {
+func (agent *Cql) Start(oristate rlglue.State) rlglue.Action {
+	if agent.cqlSettings.OfflineLearning {
 		return rlglue.Action(0)
 	}
 	state := make([]float64, agent.StateDim)
@@ -204,9 +204,9 @@ func (agent *Fqi) Start(oristate rlglue.State) rlglue.Action {
 }
 
 // Step provides a new observation and a reward to the agent and returns the agent's next action.
-//func (agent *Fqi) Step(state rlglue.State, reward float64) rlglue.Action {
-func (agent *Fqi) Step(oristate rlglue.State, reward float64) rlglue.Action {
-	if agent.fqiSettings.OfflineLearning {
+//func (agent *Cql) Step(state rlglue.State, reward float64) rlglue.Action {
+func (agent *Cql) Step(oristate rlglue.State, reward float64) rlglue.Action {
+	if agent.cqlSettings.OfflineLearning {
 		agent.Update()
 		return rlglue.Action(0)
 	}
@@ -239,8 +239,8 @@ func (agent *Fqi) Step(oristate rlglue.State, reward float64) rlglue.Action {
 }
 
 // End informs the agent that a terminal state has been reached, providing the final reward.
-func (agent *Fqi) End(state rlglue.State, reward float64) {
-	if agent.fqiSettings.OfflineLearning {
+func (agent *Cql) End(state rlglue.State, reward float64) {
+	if agent.cqlSettings.OfflineLearning {
 		agent.Update()
 		return
 	}
@@ -251,13 +251,13 @@ func (agent *Fqi) End(state rlglue.State, reward float64) {
 	}
 }
 
-func (agent *Fqi) Update() {
+func (agent *Cql) Update() {
 	// Deployed online without updating weights.
-	if !agent.fqiSettings.OfflineLearning && !agent.fqiSettings.OnlineLearning {
+	if !agent.cqlSettings.OfflineLearning && !agent.cqlSettings.OnlineLearning {
 		return
 	}
 
-	if !agent.fqiSettings.OfflineLearning && agent.lw.UseLock {
+	if !agent.cqlSettings.OfflineLearning && agent.lw.UseLock {
 		//if agent.updateNum%agent.Bsize == 0 {
 		//	agent.lock = agent.lw.CheckChange()
 		//}
@@ -319,7 +319,7 @@ func (agent *Fqi) Update() {
 }
 
 // Choose action
-func (agent *Fqi) Policy(state rlglue.State) int {
+func (agent *Cql) Policy(state rlglue.State) int {
 	var idx int
 	if (agent.rng.Float64() < agent.Epsilon) || (!agent.learning) {
 		idx = agent.rng.Intn(agent.NumberOfActions)
@@ -336,7 +336,7 @@ func (agent *Fqi) Policy(state rlglue.State) int {
 	return idx
 }
 
-func (agent *Fqi) CheckAvgRwdLock(avg float64) bool {
+func (agent *Cql) CheckAvgRwdLock(avg float64) bool {
 	if agent.lw.BestAvg > avg {
 		agent.lw.DecCount += 1
 		fmt.Println("Count to lock", agent.lw.DecCount)
@@ -354,7 +354,7 @@ func (agent *Fqi) CheckAvgRwdLock(avg float64) bool {
 	return lock
 }
 
-func (agent *Fqi) CheckAvgRwdUnlock(avg float64) bool {
+func (agent *Cql) CheckAvgRwdUnlock(avg float64) bool {
 	if agent.lw.LockAvgRwd > avg {
 		agent.lw.DecCount += 1
 		fmt.Println("Count to unlock", agent.lw.DecCount)
@@ -371,8 +371,8 @@ func (agent *Fqi) CheckAvgRwdUnlock(avg float64) bool {
 	return lock
 }
 
-//func (agent *Fqi) CheckChange() bool {
-func (agent *Fqi) DynamicLock() bool {
+//func (agent *Cql) CheckChange() bool {
+func (agent *Cql) DynamicLock() bool {
 	_, _, _, rewards2D, _ := agent.bf.Content()
 	rewards := ao.Flatten2DFloat(rewards2D)
 	avg := ao.Average(rewards)
@@ -398,7 +398,7 @@ func (agent *Fqi) DynamicLock() bool {
 	}
 }
 
-func (agent *Fqi) OnetimeRwdLock() bool {
+func (agent *Cql) OnetimeRwdLock() bool {
 	if agent.lock {
 		return true
 	} else {
@@ -415,7 +415,7 @@ func (agent *Fqi) OnetimeRwdLock() bool {
 	}
 }
 
-func (agent *Fqi) OnetimeEpLenLock() bool {
+func (agent *Cql) OnetimeEpLenLock() bool {
 	if agent.lock {
 		return true
 	} else {
@@ -440,24 +440,24 @@ func (agent *Fqi) OnetimeEpLenLock() bool {
 	}
 }
 
-func (agent *Fqi) KeepLock() bool {
+func (agent *Cql) KeepLock() bool {
 	return true
 }
 
-func (agent *Fqi) GetLock() bool {
+func (agent *Cql) GetLock() bool {
 	return agent.lock
 }
 
 // Load datalog, copy dataset to replay buffer.
-func (agent *Fqi) loadDataLog(run int) error {
-	if !agent.fqiSettings.OfflineLearning {
+func (agent *Cql) loadDataLog(run int) error {
+	if !agent.cqlSettings.OfflineLearning {
 		return nil
 	}
 	var allTrans [][]float64
 	var err error
 
 	// Load training set
-	folder := agent.fqiSettings.DataLog
+	folder := agent.cqlSettings.DataLog
 	traceLog := folder + "/traces-" + strconv.Itoa(int(run)) + ".csv"
 	fmt.Printf("Training set: %v\n", traceLog)
 	allTrans, err = agent.loadDatalogFile(traceLog)
@@ -468,20 +468,20 @@ func (agent *Fqi) loadDataLog(run int) error {
 	for i := 0; i < len(allTrans); i++ {
 		trans := allTrans[i]
 		gamma := float64(0)
-		terminal := trans[agent.fqiSettings.StateDim*2+2]
+		terminal := trans[agent.cqlSettings.StateDim*2+2]
 		if terminal == 0 {
 			gamma = agent.Gamma
 		}
 		agent.bf.Feed(
-			trans[:agent.fqiSettings.StateDim],                                 // state
-			trans[agent.fqiSettings.StateDim],                                  // action
-			trans[agent.fqiSettings.StateDim+1:agent.fqiSettings.StateDim*2+1], // next state
-			trans[agent.fqiSettings.StateDim*2+1],                              // reward
+			trans[:agent.cqlSettings.StateDim],                                 // state
+			trans[agent.cqlSettings.StateDim],                                  // action
+			trans[agent.cqlSettings.StateDim+1:agent.cqlSettings.StateDim*2+1], // next state
+			trans[agent.cqlSettings.StateDim*2+1],                              // reward
 			gamma,                                                              // gamma
 		)
 	}
 
-	if !agent.fqiSettings.OfflineLearning {
+	if !agent.cqlSettings.OfflineLearning {
 		return nil
 	}
 
@@ -497,15 +497,15 @@ func (agent *Fqi) loadDataLog(run int) error {
 	for i := 0; i < len(allTrans); i++ {
 		trans := allTrans[i]
 		gamma := float64(0)
-		terminal := trans[agent.fqiSettings.StateDim*2+2]
+		terminal := trans[agent.cqlSettings.StateDim*2+2]
 		if terminal == 0 {
 			gamma = agent.Gamma
 		}
 		agent.bfValid.Feed(
-			trans[:agent.fqiSettings.StateDim],                                 // state
-			trans[agent.fqiSettings.StateDim],                                  // action
-			trans[agent.fqiSettings.StateDim+1:agent.fqiSettings.StateDim*2+1], // next state
-			trans[agent.fqiSettings.StateDim*2+1],                              // reward
+			trans[:agent.cqlSettings.StateDim],                                 // state
+			trans[agent.cqlSettings.StateDim],                                  // action
+			trans[agent.cqlSettings.StateDim+1:agent.cqlSettings.StateDim*2+1], // next state
+			trans[agent.cqlSettings.StateDim*2+1],                              // reward
 			gamma,                                                              // gamma
 		)
 	}
@@ -513,7 +513,7 @@ func (agent *Fqi) loadDataLog(run int) error {
 	return nil
 }
 
-func (agent *Fqi) loadDatalogFile(tracePath string) ([][]float64, error) {
+func (agent *Cql) loadDatalogFile(tracePath string) ([][]float64, error) {
 	// Get offline data
 	var allTransTemp [][]float64
 	csvFile, err := os.Open(tracePath)
@@ -525,28 +525,28 @@ func (agent *Fqi) loadDatalogFile(tracePath string) ([][]float64, error) {
 	if err != nil {
 		return allTransTemp, errors.New("Cannot read trace log file: " + err.Error())
 	}
-	if len(allTransStr) <= agent.fqiSettings.BatchSize {
+	if len(allTransStr) <= agent.cqlSettings.BatchSize {
 		return allTransTemp, errors.New("Not enough data to sample from: " + err.Error())
 	}
 	allTransTemp = make([][]float64, len(allTransStr)-1)
 	for i := 1; i < len(allTransStr); i++ { // remove first str (title of column)
 		trans := allTransStr[i]
-		row := make([]float64, agent.fqiSettings.StateDim*2+3)
+		row := make([]float64, agent.cqlSettings.StateDim*2+3)
 		for j, num := range trans {
 			if j == 0 { // next state
 				num = num[1 : len(num)-1] // remove square brackets
-				copy(row[agent.fqiSettings.StateDim+1:agent.fqiSettings.StateDim*2+1], convformat.ListStr2Float(num, " "))
+				copy(row[agent.cqlSettings.StateDim+1:agent.cqlSettings.StateDim*2+1], convformat.ListStr2Float(num, " "))
 			} else if j == 1 { // current state
 				num = num[1 : len(num)-1]
-				copy(row[:agent.fqiSettings.StateDim], convformat.ListStr2Float(num, " "))
+				copy(row[:agent.cqlSettings.StateDim], convformat.ListStr2Float(num, " "))
 			} else if j == 2 { // action
-				row[agent.fqiSettings.StateDim], _ = strconv.ParseFloat(num, 64)
+				row[agent.cqlSettings.StateDim], _ = strconv.ParseFloat(num, 64)
 			} else if j == 3 { //reward
-				row[agent.fqiSettings.StateDim*2+1], _ = strconv.ParseFloat(num, 64)
-				if row[agent.fqiSettings.StateDim*2+1] == -1 { // termination
-					row[agent.fqiSettings.StateDim*2+2] = 1
+				row[agent.cqlSettings.StateDim*2+1], _ = strconv.ParseFloat(num, 64)
+				if row[agent.cqlSettings.StateDim*2+1] == -1 { // termination
+					row[agent.cqlSettings.StateDim*2+2] = 1
 				} else {
-					row[agent.fqiSettings.StateDim*2+2] = 0
+					row[agent.cqlSettings.StateDim*2+2] = 0
 				}
 			}
 		}
@@ -557,54 +557,54 @@ func (agent *Fqi) loadDatalogFile(tracePath string) ([][]float64, error) {
 }
 
 // Load neural net for online evaluation/learning.
-func (agent *Fqi) loadWeights() error {
-	if agent.fqiSettings.OfflineLearning {
+func (agent *Cql) loadWeights() error {
+	if agent.cqlSettings.OfflineLearning {
 		return nil
 	}
 
-	if agent.fqiSettings.WeightPath == "" {
+	if agent.cqlSettings.WeightPath == "" {
 		return nil
 	}
 
 	// load weights here, save weights after training (called somewhere in experiment.go)
 	err := agent.learningNet.LoadNetwork(
-		fmt.Sprintf("%slearning/", agent.fqiSettings.WeightPath),
+		fmt.Sprintf("%slearning/", agent.cqlSettings.WeightPath),
 		agent.StateDim, agent.Hidden, agent.NumberOfActions)
 	if err != nil {
-		return errors.New("FQI agent unable to load networks: " + err.Error())
+		return errors.New("CQL agent unable to load networks: " + err.Error())
 	}
 
 	err = agent.targetNet.LoadNetwork(
-		fmt.Sprintf("%starget/", agent.fqiSettings.WeightPath),
+		fmt.Sprintf("%starget/", agent.cqlSettings.WeightPath),
 		agent.StateDim, agent.Hidden, agent.NumberOfActions)
 	if err != nil {
-		return errors.New("FQI agent unable to load networks: " + err.Error())
+		return errors.New("CQL agent unable to load networks: " + err.Error())
 	}
 
 	return nil
 }
 
 // SaveWeights save neural net weights to speficied path.
-func (agent *Fqi) SaveWeights(basePath string) error {
-	if !agent.fqiSettings.OfflineLearning {
+func (agent *Cql) SaveWeights(basePath string) error {
+	if !agent.cqlSettings.OfflineLearning {
 		return nil
 	}
 
-	err := agent.learningNet.SaveNetwork(path.Join(agent.fqiSettings.WeightPath, basePath, "learning"))
+	err := agent.learningNet.SaveNetwork(path.Join(agent.cqlSettings.WeightPath, basePath, "learning"))
 	if err != nil {
-		return errors.New("FQI agent unable to save networks: " + err.Error())
+		return errors.New("CQL agent unable to save networks: " + err.Error())
 	}
 
-	err = agent.targetNet.SaveNetwork(path.Join(agent.fqiSettings.WeightPath, basePath, "target"))
+	err = agent.targetNet.SaveNetwork(path.Join(agent.cqlSettings.WeightPath, basePath, "target"))
 	if err != nil {
-		return errors.New("FQI agent unable to save networks: " + err.Error())
+		return errors.New("CQL agent unable to save networks: " + err.Error())
 	}
 
 	return nil
 }
 
 // GetLearnProg computes mean squared TD error of a full pass over the whole dataset.
-func (agent *Fqi) GetLearnProg() string {
+func (agent *Cql) GetLearnProg() string {
 	// MSTDE of training set
 	lastStates, lastActionsFloat, states, rewards, gammas := agent.bf.Content()
 	lastActions := ao.Flatten2DInt(ao.A64ToInt2D(lastActionsFloat))
@@ -642,6 +642,6 @@ func (agent *Fqi) GetLearnProg() string {
 		strconv.FormatFloat(validLoss/float64(len(lastQ)), 'f', -1, 64))
 }
 
-func (agent *Fqi) PassInfo(info string, value float64) interface{} {
+func (agent *Cql) PassInfo(info string, value float64) interface{} {
 	return nil
 }

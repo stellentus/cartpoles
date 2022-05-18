@@ -52,6 +52,9 @@ func (opt *Adam) AdamUpdate(lossMat, lastOut, weight, oldM, oldV mat.Matrix) (ma
 	var grad, m, v mat.Matrix
 	var mHat, vHat mat.Matrix
 	grad = ao.Dot(lossMat, lastOut.T())
+	//fmt.Println(grad)
+	//fmt.Println("AdamUpdate")
+
 	m = ao.Add(ao.Scale(opt.beta1, oldM), ao.Scale(1-opt.beta1, grad))
 	v = ao.Add(ao.Scale(opt.beta2, oldV), ao.Scale(1-opt.beta2, ao.Pow(grad, 2.0)))
 	ro, co := m.Dims()

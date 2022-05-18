@@ -459,6 +459,22 @@ func Sum(inputData []float64) float64 {
 	}
 	return sum
 }
+func LogSumExp(inputData []float64) float64 {
+	var expAry []float64
+	for i := 0; i < len(inputData); i++ {
+		expAry = append(expAry, math.Exp(inputData[i]))
+	}
+	sumExp := Sum(expAry)
+	logSE := math.Logb(sumExp)
+	return logSE
+}
+//func LogSumExp2D(inputData [][]float64) float64 {
+//	var logSE2D []float64
+//	for i := 0; i < len(inputData); i++ {
+//		logSE2D = append(logSE2D, LogSumExp(inputData[i]))
+//	}
+//	return Average(logSE2D)
+//}
 func Average(inputData []float64) float64 {
 	sum := Sum(inputData)
 	sum = sum / float64(len(inputData))
