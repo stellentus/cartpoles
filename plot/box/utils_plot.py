@@ -129,6 +129,7 @@ c_dict = {
     "Esarsa transfer (calibration)": c_default_Adam[6],
 
     "Calibration (CEM)": c_default_Adam[5],
+    "Calibration (Bayes)": c_default_Adam[6],
     "Calibration (Grid search)": c_default_Adam[0],
 
     "w/o policy": c_default_Adam[0],
@@ -140,7 +141,8 @@ c_dict = {
     "Sanity Check lock weight": c_default_Adam[1],
     "Sanity Check lr=0": c_default[0],
 
-    "RS": "#16a085"
+    "RS": "#16a085",
+    "Calibration (RS)": "#16a085"
 }
 m_default = [".", "^", "+", "*", "s", "D", "h", "H", "."]
 m_dict = {
@@ -284,7 +286,7 @@ def plot_generation(te, cms, ranges, source, title, ylim=None, yscale="linear", 
     #plot_violins(filtered, te_thrd, ranges, title, ylim=ylim, yscale=yscale, res_scale=res_scale)
 
 def plot_compare_top(te, cms, fqi, rand_lst, source, title,
-                     cem=None, load_perf=None,
+                     cem=None, bayes=None, randomsearch=None, load_perf=None,
                      ylim=[], ylim2=[], yscale="linear", res_scale=1, outer=None, sparse_reward=None, max_len=np.inf, discount=1,
                      ylabel="", right_ax=[], label_ncol=10, plot="box", true_perf_label=True, flip=False):
     ranges = [0]
@@ -337,7 +339,35 @@ def plot_compare_top(te, cms, fqi, rand_lst, source, title,
 
         for pk in total_cem_data.keys():
             cem_data.append(np.mean(total_cem_data[pk]))
-        
+
+    if bayes is not None:
+        bayes_data_all = loading_average(bayes, source, outer=outer, sparse_reward=sparse_reward, max_len=max_len)["Calibration (Bayes)"]
+        total_bayes_data = {}
+        bayes_data = []
+        for rk in bayes_data_all.keys():
+            for pk in bayes_data_all[rk].keys():
+                if pk not in total_bayes_data:
+                    total_bayes_data[pk] = [bayes_data_all[rk][pk]]
+                else:
+                    total_bayes_data[pk].append(bayes_data_all[rk][pk])
+
+        for pk in total_bayes_data.keys():
+            bayes_data.append(np.mean(total_bayes_data[pk]))
+
+    if randomsearch is not None:
+        rs_data_all = loading_average(randomsearch, source, outer=outer, sparse_reward=sparse_reward, max_len=max_len)["Calibration (RS)"]
+        total_rs_data = {}
+        rs_data = []
+        for rk in rs_data_all.keys():
+            for pk in rs_data_all[rk].keys():
+                if pk not in total_rs_data:
+                    total_rs_data[pk] = [rs_data_all[rk][pk]]
+                else:
+                    total_rs_data[pk].append(rs_data_all[rk][pk])
+
+        for pk in total_rs_data.keys():
+            rs_data.append(np.mean(total_rs_data[pk]))
+
         # print(cem_data)
 
     # random data list
@@ -398,6 +428,10 @@ def plot_compare_top(te, cms, fqi, rand_lst, source, title,
         bsl["Random"] = [rand_data]
     if cem is not None:
         bsl["Calibration (CEM)"] = [cem_data]
+    if bayes is not None:
+        bsl["Calibration (Bayes)"] = [bayes_data]
+    if randomsearch is not None:
+        bsl["Calibration (RS)"] = [rs_data]
     if fqi is not None:
         for k in fqi_data_allkeys.keys():
             bsl[k] = fqi_data_allkeys[k]

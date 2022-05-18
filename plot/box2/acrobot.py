@@ -56,10 +56,10 @@ def top_param():
     random = ac_rnd
     true = {"true": ac_true}
     fqi = {"FQI": ac_fqi_tc}
-    show_perform = {"RS": ac_gridsearch_uniform_online}
-    sp_run_num = {"RS": ac_gridsearch_uniform}
+    # show_perform = {"RS": ac_gridsearch_uniform_online}
+    # sp_run_num = {"RS": ac_gridsearch_uniform}
     # plot_compare_top(true, calibration, fqi, random, "totals", "../img/ac_plot1",
-    #                  load_perf=[show_perform, sp_run_num],
+    #                  # load_perf=[show_perform, sp_run_num],
     #                  outer=30, res_scale=1, ylim=[-250, -100], ylabel="Return per episode",
     #                  right_ax=["Calibration-NN", "FQI", "Random"],
     #                  label_ncol=1)
@@ -69,10 +69,12 @@ def top_param():
     }
     true = {"true": ac_true}
     cem = {"Calibration (CEM)": ac_cemlaplace}
-    show_perform = {"RS": ac_cem_uniform_online}
-    sp_run_num = {"RS": ac_cem_uniform}
-    plot_compare_top(true, calibration, None, [], "totals", "../img/ac_cem", cem=cem,
-                     load_perf=[show_perform, sp_run_num],
+    bayes = {"Calibration (Bayes)": ac_bayes_online}
+    randomsearch = {"Calibration (RS)": ac_randomsearch_online}
+    # show_perform = {"RS": ac_cem_uniform_online}
+    # sp_run_num = {"RS": ac_cem_uniform}
+    plot_compare_top(true, calibration, None, [], "totals", "../img/ac_cem", cem=cem, bayes=bayes, randomsearch=randomsearch,
+                     # load_perf=[show_perform, sp_run_num],
                      outer=30, res_scale=1, yscale="linear", ylim=[], ylabel="Step per episode",
                      right_ax=[],
                      label_ncol=2, true_perf_label=False)

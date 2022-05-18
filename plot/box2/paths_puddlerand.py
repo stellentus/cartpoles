@@ -8,6 +8,9 @@ pr_cem_uniform = ["../../data/hyperparam_v5/puddlerand/offline_learning/knn/lear
 # pr_cem_uniform_best = ["../../data/hyperparam_v5/puddlerand/online_learning/esarsa/step30k/cem_uniform_baseline_best"]
 pr_cem_uniform_online = ["../../data/hyperparam_v5/puddlerand/online_learning/esarsa/step30k/cem_uniform_sample"]
 
+pr_bayes_online = ["../../data/hyperparam_v5/puddlerand/online_learning/esarsa/step30k/bayesopt/"]
+pr_randomsearch_online = ["../../data/hyperparam_v5/puddlerand/online_learning/esarsa/step30k/randomsearch/"]
+
 pr_gridsearch_uniform = ["../../data/hyperparam_v5/puddlerand/offline_learning/knn/learning/k3_laplace/timeout1000/esarsa/step5k_env/data_optimal/drop0/gridsearch_uniform_sample"]
 # pr_gridsearch_uniform_best = ["../../data/hyperparam_v5/puddlerand/online_learning/esarsa/step30k/gridsearch_uniform_baseline_best"]
 pr_gridsearch_uniform_online = ["../../data/hyperparam_v5/puddlerand/online_learning/esarsa/step30k/gridsearch_uniform_sample"]
