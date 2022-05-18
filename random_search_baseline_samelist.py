@@ -481,7 +481,7 @@ def puddle_world_500_subopt():
         write_json(template, seed, range_dict, path, online_template=online_template, online_path=online_path)
 
 if __name__ == '__main__':
-    acrobot_5k_opt()
-    puddle_world_5k_opt()
+    # acrobot_5k_opt()
+    # puddle_world_5k_opt()
     acrobot_500_subopt()
     puddle_world_500_subopt()
