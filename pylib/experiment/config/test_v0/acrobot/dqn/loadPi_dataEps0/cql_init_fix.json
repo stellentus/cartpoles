@@ -1,0 +1,52 @@
+{
+    "config_class": "DQNAgentConfig",
+    "fixed_parameters": {
+        "exp_name": "test_v0/acrobot/dqn/loadPi_dataEps0/cql_init_learning_sweep",
+        "env_name": "Acrobot",
+        "discount": 0.99,
+
+        "agent_name": "DQNAgent",
+        "state_norm_coef": [[-1,-1,-1,-1,-13,-29], [1,1,1,1,13,29]],
+        "decay_epsilon": false,
+        "epsilon": 0.1,
+
+        "rep_fn_config": {
+            "rep_type": "identity",
+            "out_dim": 6,
+            "load_params": false,
+            "train_params": false
+        },
+        "val_fn_config": {
+            "val_fn_type": "fc",
+            "hidden_units": [64, 64],
+            "init_type": "xavier",
+            "load_params": true,
+            "train_params": true,
+            "path": "test_v0/acrobot/cql_offline/data_eps0/sweep/{}_run/{}_param_setting/parameters/val_net"
+        },
+        "update_network": true,
+        "use_target_network": true,
+        "target_network_update_freq": 32,
+        "batch_size": 32,
+        "optimizer_type": "Adam",
+
+        "replay": true,
+        "memory_size": 300000,
+
+        "max_steps": 300000,
+        "log_interval": 1000,
+        "eval_interval": 1000,
+        "eval_episodes": 5,
+        "save_interval": 0,
+        "timeout": 500,
+        "stats_queue_size": 5,
+        "tensorboard_logs": false,
+        "save_params": false,
+        "visualize": false,
+        "evaluate_overestimation": false
+    },
+    "sweep_parameters": {
+        "learning_rate": [0.03, 0.01, 0.003, 0.001, 0.0003, 0.0001, 3e-5, 1e-5],
+        "warm_up_step": [0]
+    }
+}
