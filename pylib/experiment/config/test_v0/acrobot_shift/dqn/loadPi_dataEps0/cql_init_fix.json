@@ -1,8 +1,8 @@
 {
     "config_class": "DQNAgentConfig",
     "fixed_parameters": {
-        "exp_name": "test_v0/acrobot/dqn/loadPi_dataEps0/dql_init_fix_{}",
-        "env_name": "Acrobot",
+        "exp_name": "test_v0/acrobot_shift/dqn/loadPi_dataEps0/dql_init_fix_{}",
+        "env_name": "CustomizedAcrobot",
         "discount": 1.0,
 
         "agent_name": "DQNAgent",
@@ -45,7 +45,7 @@
         "visualize": false,
         "evaluate_overestimation": false,
         "save_csv": true,
-        "csv_path": "../data/hyperparam_v5/acrobot/online_learning/cql/step15k/sweep_{}/"
+        "csv_path": "../data/hyperparam_v5/acrobot_shift/online_learning/cql/step15k/sweep_{}/"
     },
     "sweep_parameters": {
         "learning_rate": [0.03, 0.01, 0.003, 0.001, 0.0003, 0.0001],

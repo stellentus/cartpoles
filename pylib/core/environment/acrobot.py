@@ -32,6 +32,7 @@ class Acrobot:
 
         state, reward, done, info = self.env.step(act)
         self.state = state
+        reward = -1 # always -1
         # self.env.render()
         return np.asarray(state), np.asarray(reward), np.asarray(done), info
 
@@ -66,3 +67,10 @@ class Acrobot:
         # print(state)
         # print()
         return np.asarray(state), np.asarray(reward), np.asarray(done), info
+
+
+class CustomizedAcrobot(Acrobot):
+    def __init__(self, seed=np.random.randint(int(1e5))):
+        super().__init__(seed)
+        self.env.unwrapped.LINK_LENGTH_1 *= 2
+        self.env.unwrapped.LINK_MASS_1 *= 2

@@ -92,6 +92,7 @@ class Config(EmptyConfig):
         self.true_value_paths = None
         self.visualize = False
         self.evaluate_overestimation = False
+        self.save_csv = False
 
     def get_log_dir(self):
         d = os.path.join(self.data_root, self.exp_name, "{}_run".format(self.run),

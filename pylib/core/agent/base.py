@@ -213,8 +213,9 @@ class Agent:
         #     print("Right after", self.eval_env.state)
         #     print(self.env.step([0]))
         #     exit()
-        self.populate_returns()
-        mean, median, min_, max_ = self.log_return(self.ep_returns_queue_test, "TEST", elapsed_time)
+
+        # self.populate_returns()
+        # mean, median, min_, max_ = self.log_return(self.ep_returns_queue_test, "TEST", elapsed_time)
         return mean, median, min_, max_
 
     def policy(self, state, eps):

@@ -19,6 +19,7 @@ if __name__ == '__main__':
     parser.add_argument('--id', default=0, type=int, help='identifies param_setting number and parameter configuration')
     parser.add_argument('--config-file', default='experiment/config/test_v0/mountain_car/dqn/temp.json')
     parser.add_argument('--device', default=-1, type=int, )
+    parser.add_argument('--total-param', default=54, type=int, )
     args = parser.parse_args()
 
     torch_utils.set_one_thread()
@@ -28,8 +29,12 @@ if __name__ == '__main__':
     cfg.device = torch_utils.select_device(args.device)
     torch_utils.random_seed(cfg.seed)
 
-    cfg.rep_fn_config = format_path.fill_run_number(cfg.rep_fn_config, cfg.run, cfg.param_setting, cfg.data_root)
-    cfg.val_fn_config = format_path.fill_run_number(cfg.val_fn_config, cfg.run, cfg.param_setting, cfg.data_root)
+    # # overwrite Sweeper
+    # cfg.run = int(args.id / args.total_param)
+    # cfg.param_setting = int(args.id % args.total_param)
+    # cfg.seed = cfg.run
+    cfg.rep_fn_config = format_path.fill_run_number(cfg.rep_fn_config, 0, cfg.param_setting, cfg.data_root)
+    cfg.val_fn_config = format_path.fill_run_number(cfg.val_fn_config, 0, cfg.param_setting, cfg.data_root)
 
     cfg.rep_activation_fn = activations.ActvFactory.get_activation_fn(cfg)
     cfg.rep_fn = network.NetFactory.get_rep_fn(cfg)

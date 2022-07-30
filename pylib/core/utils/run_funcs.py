@@ -1,8 +1,10 @@
 import os.path
 import pickle
 import time
+import copy
 import numpy as np
 import pandas as pd
+from core.utils.torch_utils import ensure_dir
 
 EARLYCUTOFF = "EarlyCutOff"
 # def load_testset(paths, run=0):
@@ -120,6 +122,29 @@ def load_testset(paths, run=0):
         # axs[1].set_xlim((-13, 13))
         # axs[1].set_ylim((-30, 30))
         # plt.show()
+
+        # import matplotlib
+        # import matplotlib.pyplot as plt
+        # def cmap4array(ary, min, max, getcm=False):
+        #     cm = 'cool'
+        #     getc = matplotlib.cm.get_cmap(cm)
+        #     range_ = max - min
+        #     if getcm:
+        #         cm = matplotlib.cm.get_cmap(cm)
+        #         norm = matplotlib.colors.Normalize(vmin=min, vmax=max)
+        #         return getc(ary/range_), cm, norm
+        #     return getc(ary/range_)
+        # fig, axs = plt.subplots(1,1)
+        # idx = np.where(reward < -1)[0]
+        # states = s_ary#[idx]
+        # reward = reward#[idx]
+        # axs.plot([0.45, 0.1], [0.75, 0.75], color="black")
+        # axs.plot([0.45, 0.45], [0.8, 0.4], color="black")
+        # axs.scatter(states[:, 0], states[:, 1], s=1, c=cmap4array(reward, -45, -1))
+        # axs.set_xlim(0, 1)
+        # axs.set_ylim(0, 1)
+        # plt.show()
+
     return testsets
 
 def load_true_values(cfg):
@@ -137,7 +162,8 @@ def run_steps(agent):
     # valuesets = load_true_values(agent.cfg)
     t0 = time.time()
     transitions = []
-    agent.populate_returns(initialize=True)
+    goto_states = []
+    # agent.populate_returns(initialize=True)
     agent.random_fill_buffer(agent.cfg.warm_up_step)
     while True:
         if agent.cfg.log_interval and not agent.total_steps % agent.cfg.log_interval:
@@ -163,15 +189,30 @@ def run_steps(agent):
             break
 
         if agent.cfg.log_observations:
-            transitions.append(seq)
+            transitions.append(copy.deepcopy(seq))
+            # print(seq[3])
+            goto_states.append(copy.deepcopy(seq[3]))
 
     if agent.cfg.save_params:
         agent.save()
 
     if agent.cfg.log_observations:
-        data_dir = agent.cfg.get_data_dir()
-        with open(os.path.join(data_dir, 'transition.pkl'), 'wb') as f:
-            pickle.dump(transitions, f)
+        import matplotlib.pyplot as plt
+        goto_states = np.array(goto_states)
+        plt.scatter(goto_states[:, 0], goto_states[:, 1])
+        plt.show()
+        # data_dir = agent.cfg.get_data_dir()
+        # with open(os.path.join(data_dir, 'transition.pkl'), 'wb') as f:
+        #     pickle.dump(transitions, f)
+
+    if agent.cfg.save_csv:
+        agent.episode_rewards.append(agent.episode_reward)
+        agent.num_episodes += 1
+        df = pd.DataFrame({'total reward': [np.array(agent.episode_rewards).sum()],
+                           'total episodes': [len(agent.episode_rewards)]
+                           })
+        ensure_dir(agent.cfg.csv_path+'/param_{}'.format(agent.cfg.param_setting))
+        df.to_csv(os.path.join(agent.cfg.csv_path, 'param_{}/totals-{}.csv'.format(agent.cfg.param_setting, agent.cfg.run)))
 
 
 def value_iteration(env, gamma):

@@ -1,15 +1,30 @@
 {
     "config_class": "DQNAgentConfig",
     "fixed_parameters": {
-        "exp_name": "test_v0/acrobot/dqn/loadPi_dataEps0/dql_init_fix_{}",
+        "exp_name": "test_v0/acrobot/dqn/loadPi_dataEps0/dql_init_fix_19",
         "env_name": "Acrobot",
         "discount": 1.0,
-
         "agent_name": "DQNAgent",
-        "state_norm_coef": [[-1,-1,-1,-1,-13,-29], [1,1,1,1,13,29]],
+        "state_norm_coef": [
+            [
+                -1,
+                -1,
+                -1,
+                -1,
+                -13,
+                -29
+            ],
+            [
+                1,
+                1,
+                1,
+                1,
+                13,
+                29
+            ]
+        ],
         "decay_epsilon": false,
         "epsilon": 0,
-
         "rep_fn_config": {
             "rep_type": "identity",
             "out_dim": 6,
@@ -18,21 +33,22 @@
         },
         "val_fn_config": {
             "val_fn_type": "fc",
-            "hidden_units": [128, 128],
+            "hidden_units": [
+                128,
+                128
+            ],
             "init_type": "xavier",
             "load_params": true,
             "train_params": false,
-            "path": "test_v0/acrobot/cql_offline/data5k_eps0/sweep_{}/{}_run/{}_param_setting/parameters/val_net"
+            "path": "test_v0/acrobot/cql_offline/data5k_eps0/sweep_19/{}_run/{}_param_setting/parameters/val_net"
         },
         "update_network": false,
         "use_target_network": false,
         "target_network_update_freq": 32,
         "batch_size": 32,
         "optimizer_type": "Adam",
-
         "replay": true,
         "memory_size": 300000,
-
         "max_steps": 15000,
         "log_interval": 1000,
         "eval_interval": 1000,
@@ -45,12 +61,29 @@
         "visualize": false,
         "evaluate_overestimation": false,
         "save_csv": true,
-        "csv_path": "../data/hyperparam_v5/acrobot/online_learning/cql/step15k/sweep_{}/"
+        "csv_path": "../data/hyperparam_v5/acrobot/online_learning/cql/step15k/sweep_19/"
     },
     "sweep_parameters": {
-        "learning_rate": [0.03, 0.01, 0.003, 0.001, 0.0003, 0.0001],
-        "cql_alpha": [5.0, 1.0, 0.2],
-        "target_network_update_freq": [8, 16, 32],
-        "warm_up_step": [0]
+        "learning_rate": [
+            0.03,
+            0.01,
+            0.003,
+            0.001,
+            0.0003,
+            0.0001
+        ],
+        "cql_alpha": [
+            5.0,
+            1.0,
+            0.2
+        ],
+        "target_network_update_freq": [
+            8,
+            16,
+            32
+        ],
+        "warm_up_step": [
+            0
+        ]
     }
 }
