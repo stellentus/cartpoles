@@ -20,3 +20,11 @@ ac_cemlaplace = ["../../data/icml_data/acrobot/online_learning/esarsa/step15k/CE
 
 ac_networkscaledlaplace_optim_5k = ["../../data/icml_data/acrobot/offline_learning/network/learning/clip_scale_laplace_separated/timeout500/esarsa/step5k_env/data_optimal/sweep/"]
 ac_fqi_tc = ["../../data/icml_data/acrobot/offline_learning/fqi-linear/fqi-adam/alpha_hidden_epsilon/step5k_env/optimalfixed_eps0/lambda1e-3/lockat_baseline_online/"]
+
+ac_cql_offline_temp = "../../pylib/data/output/test_v0/acrobot/cql_offline/data5k_eps0/sweep_{}/"
+ac_cql_online_temp = "../../data/hyperparam_v5/acrobot/online_learning/cql/step15k/sweep_{}/"
+ac_cql_offline = []
+ac_cql_online = []
+for i in range(30):
+    ac_cql_offline.append(ac_cql_offline_temp.format(i))
+    ac_cql_online.append(ac_cql_online_temp.format(i))

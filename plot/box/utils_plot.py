@@ -142,7 +142,8 @@ c_dict = {
     "Sanity Check lr=0": c_default[0],
 
     "RS": "#16a085",
-    "Calibration (RS)": "#16a085"
+    "Calibration (RS)": "#16a085",
+    "CQL": "#9b59b6",
 }
 m_default = [".", "^", "+", "*", "s", "D", "h", "H", "."]
 m_dict = {
@@ -285,7 +286,7 @@ def plot_generation(te, cms, ranges, source, title, ylim=None, yscale="linear", 
     plot_boxs(filtered, te_thrd, ranges, title, ylim=ylim, yscale=yscale, res_scale=res_scale, label_ncol=label_ncol)
     #plot_violins(filtered, te_thrd, ranges, title, ylim=ylim, yscale=yscale, res_scale=res_scale)
 
-def plot_compare_top(te, cms, fqi, rand_lst, source, title,
+def plot_compare_top(te, cms, fqi, rand_lst, source, title, cql=None,
                      cem=None, bayes=None, randomsearch=None, load_perf=None,
                      ylim=[], ylim2=[], yscale="linear", res_scale=1, outer=None, sparse_reward=None, max_len=np.inf, discount=1,
                      ylabel="", right_ax=[], label_ncol=10, plot="box", true_perf_label=True, flip=False):
@@ -316,6 +317,9 @@ def plot_compare_top(te, cms, fqi, rand_lst, source, title,
             for pk in total_fqi_data.keys():
                 fqi_data.append(np.mean(total_fqi_data[pk]))
             fqi_data_allkeys[key] = fqi_data
+
+    if cql is not None:
+        cql_data = loading_average_from_loss(cql[0], cql[1], source, outer=outer, sparse_reward=sparse_reward, max_len=max_len)
 
     if cem is not None:
         # cem_data_all = loading_average(cem, source, outer=outer, sparse_reward=sparse_reward, max_len=max_len)["cem"] # 30 runs in total, but different parameters
@@ -435,6 +439,8 @@ def plot_compare_top(te, cms, fqi, rand_lst, source, title,
     if fqi is not None:
         for k in fqi_data_allkeys.keys():
             bsl[k] = fqi_data_allkeys[k]
+    if cql is not None:
+        bsl["CQL"] = [cql_data]
     for k in bsl:
         filtered[k] = bsl[k]
 
@@ -685,7 +691,7 @@ def plot_boxs(filtered, thrd, xlabel, title, ylim=[], ylim2=[], yscale='linear',
         else:
             true_perf_pos -= (true_perf_pos - ymin) * 0.8
 
-        ax.text(min_x-space, true_perf_pos, "True perf.", c="black", fontsize=15)
+        # ax.text(min_x-space, true_perf_pos, "True perf.", c="black", fontsize=15)
 
     if yscale!="log":
         ymin, ymax = rhs_axs.get_ylim()

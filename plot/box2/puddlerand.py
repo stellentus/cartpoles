@@ -56,29 +56,31 @@ def top_param():
     random = pr_rnd
     true = {"true": pr_true}
     fqi = {"FQI": pr_fqi_tc}
-    # show_perform = {"RS": pr_gridsearch_uniform_online}
-    # sp_run_num = {"RS": pr_gridsearch_uniform}
-    # plot_compare_top(true, calibration, fqi, random, "totals", "../img/pr_plot1",
-    #                  # load_perf=[show_perform, sp_run_num],
-    #                  outer=30, yscale="linear", ylim=[-100, -24], ylabel="Return per episode",
-    #                  right_ax=["FQI", "Random"],
-    #                  label_ncol=6)
-
-
-    calibration = {
-        "w/o policy": pr_knnlaplace_suboptim_500,
-    }
-    true = {"true": pr_true}
-    cem = {"Calibration (CEM)": pr_cemlaplace}
-    bayes = {"Calibration (Bayes)": pr_bayes_online}
-    randomsearch = {"Calibration (RS)": pr_randomsearch_online}
-    # show_perform = {"RS": pr_cem_uniform_online}
-    # sp_run_num = {"RS": pr_cem_uniform}
-    plot_compare_top(true, calibration, None, [], "totals", "../img/pr_cem", cem=cem, bayes=bayes, randomsearch=randomsearch,
+    cql = [pr_cql_offline, pr_cql_online]
+    show_perform = {"RS": pr_gridsearch_uniform_online}
+    sp_run_num = {"RS": pr_gridsearch_uniform}
+    plot_compare_top(true, calibration, fqi, random, "totals", "../img/pr_plot1_withFQI", cql=cql,
+    # plot_compare_top(true, calibration, None, random, "totals", "../img/pr_plot1", cql=cql,
                      # load_perf=[show_perform, sp_run_num],
-                     outer=30, yscale="linear", ylim=[], ylabel="Step per episode",
-                     right_ax=[],
-                     label_ncol=2, true_perf_label=False)
+                     outer=30, yscale="linear", ylim=[-200, -24], ylabel="Return per episode",
+                     right_ax=["CQL", "FQI", "Random"],
+                     label_ncol=6)
+
+
+    # calibration = {
+    #     "w/o policy": pr_knnlaplace_suboptim_500,
+    # }
+    # true = {"true": pr_true}
+    # cem = {"Calibration (CEM)": pr_cemlaplace}
+    # bayes = {"Calibration (Bayes)": pr_bayes_online}
+    # randomsearch = {"Calibration (RS)": pr_randomsearch_online}
+    # # show_perform = {"RS": pr_cem_uniform_online}
+    # # sp_run_num = {"RS": pr_cem_uniform}
+    # plot_compare_top(true, calibration, None, [], "totals", "../img/pr_cem", cem=cem, bayes=bayes, randomsearch=randomsearch,
+    #                  # load_perf=[show_perform, sp_run_num],
+    #                  outer=30, yscale="linear", ylim=[], ylabel="Step per episode",
+    #                  right_ax=[],
+    #                  label_ncol=2, true_perf_label=False)
 
 if __name__ == '__main__':
     ranges = [0]

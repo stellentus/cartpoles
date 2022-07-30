@@ -162,10 +162,14 @@ def load_total(paths, source, outer=None):
                 log = run_num % int(outer) if outer is not None else run_num
                 # print(run_num, log, outer)
 
-                #print(param, run)
-                #print(pd.read_csv(os.path.join(pp, run)).columns)
-                t_rwd = pd.read_csv(os.path.join(pp, run))["total reward"][0]
-                num_ep = pd.read_csv(os.path.join(pp, run))[" total episodes"][0]
+                df = pd.read_csv(os.path.join(pp, run))
+                t_rwd = df["total reward"][0]
+                if " total episodes" in df.head():
+                    num_ep = df[" total episodes"][0]
+                elif "total episodes" in df.head():
+                    num_ep = df["total episodes"][0]
+                else:
+                    raise NotImplementedError("Total episodes column is missing")
 
                 #TODO: need to refactor this
                 if source=="episode":
@@ -477,6 +481,40 @@ def loading_average(models_paths, source="reward", outer=None, sparse_reward=Non
         
         models_data[model] = data
     return models_data
+
+def choose_offline_training(filepth, outer, num_param, num_run):
+    chosen_param = []
+    for i in range(outer):
+        dataset = filepth[i]
+        param_perf = []
+        for param in range(num_param):
+            losses = []
+            for run in range(num_run):
+                logpth = dataset + "/{}_run/{}_param_setting/log".format(run, param)
+                with open(logpth, "r") as f:
+                    log = f.readlines()
+                loss = float(log[-2].split("training loss")[1].split("/")[0])
+                losses.append(loss)
+            perf = np.array(losses).mean()
+            param_perf.append(perf)
+        param_perf = np.array(param_perf)
+        assert len(param_perf) == num_param
+        best_param = param_perf.argmin()
+        chosen_param.append(best_param)
+    # print(chosen_param)
+    return chosen_param
+
+def loading_average_from_loss(offline_filepth, online_filepth, source, outer=30, num_param=54, num_run=1, sparse_reward=False, max_len=np.inf):
+    chosen_param = choose_offline_training(offline_filepth, outer, num_param, num_run)
+    online_perf_all = []
+    for dataset in range(outer):
+        key = "true{}".format(dataset)
+        online_perf = loading_average({key: [online_filepth[dataset]]}, source, outer=outer, sparse_reward=sparse_reward, max_len=max_len)[key]
+        online_perf = average_run(online_perf)
+        online_perf_all.append(online_perf["param_{}".format(chosen_param[dataset])])
+    print(chosen_param)
+    print(online_perf_all)
+    return online_perf_all
 
 def loading_info_one_run(file, eval_key):
     with open(file, "r") as f:

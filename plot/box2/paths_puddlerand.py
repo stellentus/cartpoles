@@ -23,3 +23,10 @@ pr_networkscaledlaplace_optim_5k = ["../../data/icml_data/puddlerand/offline_lea
 pr_fqi_tc = ["../../data/icml_data/puddlerand/offline_learning/fqi-linear/fqi-adam/alpha_hidden_epsilon/step5k_env/optimalfixed_eps0/lambda1e-3/lockat_baseline_online/"]
 
 
+pr_cql_offline_temp = "../../pylib/data/output/test_v0/puddlerand/cql_offline/data5k_eps0/sweep_{}/"
+pr_cql_online_temp = "../../data/hyperparam_v5/puddlerand/online_learning/cql/step30k/sweep_{}/"
+pr_cql_offline = []
+pr_cql_online = []
+for i in range(30):
+    pr_cql_offline.append(pr_cql_offline_temp.format(i))
+    pr_cql_online.append(pr_cql_online_temp.format(i))

@@ -37,7 +37,8 @@ acshift_pitrans_calibration_learning15k = ["../../data/hyperparam_v5/acrobot_shi
 
 ac_esarsa_true_trans = ["../../data/hyperparam_v5/acrobot_shift/policy_transfer/default/load_default/esarsa/learning/"]
 acflip_esarsa_true_trans = ["../../data/hyperparam_v5/acrobot_shift/policy_transfer/act_flip/load_default/esarsa/learning/"]
-acshift_esarsa_true_trans = ["../../data/hyperparam_v5/acrobot_shift/policy_transfer/shift/load_default/esarsa/learning/"]
+# acshift_esarsa_true_trans = ["../../data/hyperparam_v5/acrobot_shift/policy_transfer/shift/load_default/esarsa/learning/"] # learning
+acshift_esarsa_true_trans = ["../../data/icml_data/acrobot_shift/policy_transfer/shift/load_default/esarsa/all"] # fixed
 
 # ac_esarsa_true_trans = ["../../data/hyperparam_v5/acrobot_shift/policy_transfer/default/load_default/esarsa/learning_init_pi16/"]
 # acflip_esarsa_true_trans = ["../../data/hyperparam_v5/acrobot_shift/policy_transfer/act_flip/load_default/esarsa/learning_init_pi16/"]
@@ -48,3 +49,15 @@ acshift_esarsa_true_trans = ["../../data/hyperparam_v5/acrobot_shift/policy_tran
 # ac_pitrans_true_lr0 = ["../../data/hyperparam_v5/acrobot_shift/policy_transfer/default/sanity_check/load_default/lr0/"]
 
 ac_actorcritic_knnlaplace_optim = ["../../data/icml_data/acrobot/offline_learning/knn/learning/k3_laplace/timeout500/ac/step5k_env/data_optimal/drop0/sweep_rep1/"]
+
+acshift_knnlaplace_optim_5k = ["../../data/icml_data/acrobot/offline_learning/knn/learning/k3_laplace/timeout500/esarsa/step5k_env/data_optimal/drop0/sweep_rep1/"] # used
+acshift_esarsa_calibration_trans = ["../../data/icml_data/acrobot_shift/policy_transfer/shift/load_calibration_default/esarsa/fixed_all/"] # used
+acshift_fqi_tc_optim_5k = ["../../data/icml_data/acrobot_shift/policy_transfer/shift/load_default/fqi-linear/fqi-adam/alpha_hidden_epsilon/step5k_env/optimalfixed_eps0/lambda1e-3/lockat_baseline_online/"]
+
+ac_cql_offline_temp = "../../pylib/data/output/test_v0/acrobot/cql_offline/data5k_eps0/sweep_{}/"
+acshift_cql_online_temp = "../../data/hyperparam_v5/acrobot_shift/online_learning/cql/step15k/sweep_{}/"
+ac_cql_offline = []
+acshift_cql_online = []
+for i in range(30):
+    ac_cql_offline.append(ac_cql_offline_temp.format(i))
+    acshift_cql_online.append(acshift_cql_online_temp.format(i))

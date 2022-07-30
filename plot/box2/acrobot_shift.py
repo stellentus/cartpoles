@@ -152,17 +152,27 @@ def shift_top_param_piinit():
                      outer=30, res_scale=-1, yscale="linear", ylim=[160, 950], ylabel="Step per episode",
                      right_ax=["Random", "FQI", "Shift Esarsa transfer (calibration)"],
                      label_ncol=2, true_perf_label=False)
-def flip_top_param_piinit():
+def top_param():
+    # PLOT 3
     calibration = {
-        "Knn": ac_knnlaplace_optim_5k_pi,
+        "Calibration": acshift_knnlaplace_optim_5k,
     }
-    random = ac_rnd
-    fqi = {"FQI": acflip_fqi_tc}
-    true = {"true": acflip_true_pi}
-    plot_compare_top(true, calibration, fqi, random, "totals", "../img/acflip_15k_piinit",
-                     outer=30, res_scale=1, yscale="linear", ylim=[], ylabel="Step per episode",
-                     # right_ax=["Random", "FQI", "Shift Esarsa transfer (calibration)"],
-                     label_ncol=2, true_perf_label=False)
+    show_perform = {
+        "Esarsa transfer (true)": acshift_esarsa_true_trans,
+        "Esarsa transfer (calibration)": acshift_esarsa_calibration_trans,
+    }
+    sp_run_num = {
+        "Esarsa transfer (true)": acshift_esarsa_true_trans,
+        "Esarsa transfer (calibration)": acshift_esarsa_calibration_trans,
+    }
+    fqi = {"FQI": acshift_fqi_tc_optim_5k}
+    cql = [ac_cql_offline, acshift_cql_online]
+    true = {"true": acshift_true}
+    plot_compare_top(true, calibration, fqi, [], "totals", "../img/plot3_shift_withFQI", cql=cql,
+    # plot_compare_top(true, calibration, None, [], "totals", "../img/plot3_shift", cql=cql,
+                     load_perf=[show_perform, sp_run_num],
+                     outer=30, res_scale=-1, yscale="log", ylim=[100, 15000], ylabel="", right_ax=[],
+                     label_ncol=2, true_perf_label=False, flip=True)
 
 if __name__ == '__main__':
     ranges = [0]
@@ -175,3 +185,4 @@ if __name__ == '__main__':
     # flip_top_param_piinit()
     # shift_top_param_piinit()
     # default_top_param_piinit()
+    top_param()
